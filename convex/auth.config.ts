@@ -3,7 +3,7 @@
 export default {
   providers: [
     {
-      domain: "https://your-issuer-url.clerk.accounts.dev/",
+      domain: "https://civil-wasp-37.clerk.accounts.dev",
       applicationID: "convex",
     },
   ],
