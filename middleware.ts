@@ -1,20 +1,47 @@
 // middleware.ts
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+const isAdminRoute = createRouteMatcher(['/admin(.*)'])
+const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  const { userId, orgId, has } = await auth()
+
+  // Check for admin routes first
+  if (isAdminRoute(req)) {
+    // If no organization, redirect to org selection
+    if (!orgId) {
+      const orgSelection = new URL('/my-organizations', req.url)
+      return NextResponse.redirect(orgSelection)
+    }
+
+    // Check if user has admin role
+    const isAdmin = has({ role: 'org:admin' })
+    if (!isAdmin) {
+      // Use the same URL construction pattern as org selection
+      return NextResponse.redirect(new URL('/unauthorized', req.url))
+    }
+
+    // If has org and is admin, protect the route
+    await auth.protect({ role: 'org:admin' })
   }
-});
+
+  // For protected routes, check org membership
+  if (isProtectedRoute(req)) {
+    await auth.protect()
+
+    if (!orgId) {
+      const orgSelection = new URL('/my-organizations', req.url)
+      return NextResponse.redirect(orgSelection)
+    }
+  }
+})
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    "/(api|trpc)(.*)",
-  ],
-};
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)'
+  ]
+}

@@ -1,7 +1,13 @@
 // app/(auth)/sign-up/[...sign-up]/page.tsx
 
-import { SignUp } from "@clerk/nextjs";
+import { SignUp } from '@clerk/nextjs'
 
-export default function Page() {
-  return <SignUp />;
+export default function SignUpPage() {
+  return (
+    <section>
+      {/* Clerk Sign Up Component */}
+      {/* Note: Clerk handles the "Login" title, fields, button, and links */}
+      <SignUp />
+    </section>
+  )
 }
