@@ -1,7 +1,7 @@
 // app/(public)/layout.tsx
 
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
+import { Header } from '@/components/layout/public/header'
+import { Footer } from '@/components/layout/public/footer'
 
 export default function PublicLayout({
   children
@@ -9,9 +9,11 @@ export default function PublicLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className='min-h-screen flex flex-col'>
+    <div className='flex min-h-screen flex-col'>
       <Header />
-      <main className='flex-1'>{children}</main>
+      <main className='flex-1'>
+        {children}
+      </main>
       <Footer />
     </div>
   )

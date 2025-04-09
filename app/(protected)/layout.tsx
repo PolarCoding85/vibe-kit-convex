@@ -1,6 +1,6 @@
 // app/(protected)/layout.tsx
 
-import { AppSidebar } from '@/components/layout/sidebar'
+import { ProtectedSidebar } from '@/components/layout/protected/sidebar'
 import { SiteHeader } from '@/components/pages/admin/dashboard/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
@@ -11,7 +11,7 @@ export default function ProtectedLayout({
 }) {
   return (
     <SidebarProvider>
-      <AppSidebar variant='inset' />
+      <ProtectedSidebar variant='inset' />
       <SidebarInset>
         <SiteHeader />
         <div className='flex flex-1 flex-col'>

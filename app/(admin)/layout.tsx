@@ -1,6 +1,6 @@
 // app/(admin)/layout.tsx
 
-import { AppSidebar } from '@/components/layout/sidebar'
+import { AdminSidebar } from '@/components/layout/admin/sidebar'
 import { SiteHeader } from '@/components/pages/admin/dashboard/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
@@ -11,7 +11,7 @@ export default function AdminLayout({
 }) {
   return (
     <SidebarProvider>
-      <AppSidebar variant='inset' />
+      <AdminSidebar variant='inset' />
       <SidebarInset>
         <SiteHeader />
         <div className='flex flex-1 flex-col'>

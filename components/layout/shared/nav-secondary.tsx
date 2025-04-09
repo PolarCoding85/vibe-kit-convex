@@ -1,4 +1,4 @@
-// components/layout/nav/nav-documents.tsx
+// components/layout/shared/nav-secondary.tsx
 
 'use client'
 
@@ -25,9 +25,11 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 
-export function NavDocuments({
+export function NavSecondary({
+  label,
   items
 }: {
+  label: string
   items: {
     name: string
     url: string
@@ -38,10 +40,14 @@ export function NavDocuments({
 
   return (
     <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
-      <SidebarGroupLabel>Documents</SidebarGroupLabel>
+      <SidebarGroupLabel>
+        {label}
+      </SidebarGroupLabel>
       <SidebarMenu>
         {items.map(item => (
-          <SidebarMenuItem key={item.name}>
+          <SidebarMenuItem
+            key={item.name}
+          >
             <SidebarMenuButton asChild>
               <a href={item.url}>
                 <item.icon />
@@ -49,26 +55,38 @@ export function NavDocuments({
               </a>
             </SidebarMenuButton>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger
+                asChild
+              >
                 <SidebarMenuAction
                   showOnHover
                   className='data-[state=open]:bg-accent rounded-sm'
                 >
                   <MoreHorizontalIcon />
-                  <span className='sr-only'>More</span>
+                  <span className='sr-only'>
+                    More
+                  </span>
                 </SidebarMenuAction>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className='w-24 rounded-lg'
-                side={isMobile ? 'bottom' : 'right'}
-                align={isMobile ? 'end' : 'start'}
+                side={
+                  isMobile
+                    ? 'bottom'
+                    : 'right'
+                }
+                align={
+                  isMobile
+                    ? 'end'
+                    : 'start'
+                }
               >
                 <DropdownMenuItem>
-                  <FolderIcon />
+                  <item.icon />
                   <span>Open</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <ShareIcon />
+                  <item.icon />
                   <span>Share</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

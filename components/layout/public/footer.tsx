@@ -1,4 +1,4 @@
-// components/layout/footer.tsx
+// components/layout/public/footer.tsx
 
 import {
   Github,

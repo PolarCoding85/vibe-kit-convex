@@ -1,6 +1,7 @@
+// components/layout/public/header.tsx
+
 'use client'
 
-// components/layout/header.tsx
 import { Button } from '@/components/ui/button'
 import {
   Github,
@@ -12,7 +13,7 @@ import {
   useEffect,
   useState
 } from 'react'
-import { ModeToggle } from '../ui/mode-toggle'
+import { ModeToggle } from '../../ui/mode-toggle'
 
 const isLinkActive = (
   pathname: string,

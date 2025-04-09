@@ -1,4 +1,4 @@
-// components/layout/nav/nav-secondary.tsx
+// components/layout/shared/nav-footer.tsx
 
 'use client'
 
@@ -13,7 +13,7 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar'
 
-export function NavSecondary({
+export function NavFooter({
   items,
   ...props
 }: {
@@ -22,17 +22,26 @@ export function NavSecondary({
     url: string
     icon: LucideIcon
   }[]
-} & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+} & React.ComponentPropsWithoutRef<
+  typeof SidebarGroup
+>) {
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map(item => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
+            <SidebarMenuItem
+              key={item.title}
+            >
+              <SidebarMenuButton
+                tooltip={item.title}
+                asChild
+              >
                 <a href={item.url}>
                   <item.icon />
-                  <span>{item.title}</span>
+                  <span>
+                    {item.title}
+                  </span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
