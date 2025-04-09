@@ -47,7 +47,9 @@ export function Notifications() {
               onClick={() => setActiveTab('all')}
             >
               All
-              <span className='ml-1 rounded bg-muted px-1'>{dummyNotifications.filter(n => !n.archived).length}</span>
+              <span className='bg-muted ml-1 rounded px-1'>
+                {dummyNotifications.filter(n => !n.archived).length}
+              </span>
             </Button>
             <Button
               variant={activeTab === 'archive' ? 'secondary' : 'ghost'}
@@ -56,7 +58,9 @@ export function Notifications() {
               onClick={() => setActiveTab('archive')}
             >
               Archive
-              <span className='ml-1 rounded bg-muted px-1'>{dummyNotifications.filter(n => n.archived).length}</span>
+              <span className='bg-muted ml-1 rounded px-1'>
+                {dummyNotifications.filter(n => n.archived).length}
+              </span>
             </Button>
           </div>
         </div>
@@ -74,8 +78,8 @@ export function Notifications() {
                 <div className='flex w-full items-start justify-between gap-2'>
                   <p className='text-sm'>{notification.message}</p>
                   {!notification.read && (
-                    <span 
-                      className={`h-2 w-2 rounded-full ${notification.archived ? 'bg-muted-foreground' : 'bg-primary'}`} 
+                    <span
+                      className={`h-2 w-2 rounded-full ${notification.archived ? 'bg-muted-foreground' : 'bg-primary'}`}
                     />
                   )}
                 </div>
@@ -91,11 +95,11 @@ export function Notifications() {
         <div className='border-t p-2'>
           <div className='flex items-center justify-between gap-2'>
             {unreadCount > 0 && (
-              <Button variant='ghost' size='sm' className='text-xs w-full'>
+              <Button variant='ghost' size='sm' className='w-full text-xs'>
                 Mark all as read
               </Button>
             )}
-            <Button variant='ghost' size='sm' className='text-xs w-full'>
+            <Button variant='ghost' size='sm' className='w-full text-xs'>
               View all notifications
             </Button>
           </div>
