@@ -29,6 +29,8 @@ export function NavSecondary({
     name: string
     url: string
     icon: LucideIcon
+    target?: string
+    rel?: string
   }[]
 }) {
   const { isMobile } = useSidebar()

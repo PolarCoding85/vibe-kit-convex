@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { Building, Loader2, Check, Trash2 } from 'lucide-react'
+import { Building, Loader2, Check, Trash2, Save } from 'lucide-react'
 import Image from 'next/image'
 
 import { Badge } from '@/components/ui/badge'
@@ -129,7 +129,10 @@ export function UserOrganizationsTab({
                             {orgCreatedAt
                               ? (() => {
                                   try {
-                                    return format(new Date(orgCreatedAt), 'MMM yyyy')
+                                    return format(
+                                      new Date(orgCreatedAt),
+                                      'MMM yyyy'
+                                    )
                                   } catch {
                                     return 'Unknown'
                                   }
@@ -184,7 +187,7 @@ export function UserOrganizationsTab({
                             <input type='hidden' name='userId' value={userId} />
 
                             <Select name='role' defaultValue={role}>
-                              <SelectTrigger className='w-[110px]' size='sm'>
+                              <SelectTrigger className='w-[130px]' size='sm'>
                                 <SelectValue placeholder='Select role' />
                               </SelectTrigger>
                               <SelectContent>
@@ -215,7 +218,7 @@ export function UserOrganizationsTab({
                                   {updatingRoles[orgId] ? (
                                     <Loader2 className='h-4 w-4 animate-spin' />
                                   ) : (
-                                    <Check className='h-4 w-4' />
+                                    <Save className='h-4 w-4' />
                                   )}
                                   <span className='sr-only'>Update Role</span>
                                 </Button>

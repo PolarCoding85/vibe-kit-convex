@@ -3,23 +3,16 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { clerkClient } from '@clerk/nextjs/server'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-import { OrganizationDetailsTab } from '@/components/pages/admin/settings/organization/organization-details-tab'
-import { OrganizationMembersTab } from '@/components/pages/admin/settings/organization/organization-members-tab'
-import { OrganizationInvitationsTab } from '@/components/pages/admin/settings/organization/organization-invitations-tab'
+import { AdminPageHeader } from '@/components/layout/admin/admin-page-header'
+import { OrganizationDetailsForm } from '@/components/pages/admin/settings/organization/organization-details-form'
 import { OrganizationLoadingSkeleton } from '@/components/pages/admin/settings/organization/organization-loading-skeleton'
 
 // Fetch organization data server-side
 async function getData() {
-  const [{ userId, orgId }, user] = await Promise.all([
-    auth(),
-    currentUser()
-  ])
+  const [{ userId, orgId }, user] = await Promise.all([auth(), currentUser()])
 
   if (!userId || !orgId || !user) {
-    return { organization: null, members: [], invitations: [] }
+    return { organization: null }
   }
 
   // Initialize the clerk client
@@ -30,74 +23,54 @@ async function getData() {
     const organization = await clerk.organizations.getOrganization({
       organizationId: orgId
     })
-
-    // Get organization members
-    const memberships = await clerk.organizations.getOrganizationMembershipList({
-      organizationId: orgId
-    })
-
-    // Get organization invitations
-    const invitations = await clerk.organizations.getOrganizationInvitationList({
-      organizationId: orgId
-    })
+    
+    // Get creator email if available
+    let creatorEmail = 'Unknown';
+    if (organization.createdBy) {
+      try {
+        const creator = await clerk.users.getUser(organization.createdBy);
+        creatorEmail = creator.emailAddresses[0]?.emailAddress || 'No email provided';
+      } catch (error) {
+        console.error('Error fetching creator details:', error);
+      }
+    }
 
     return {
       organization,
-      members: memberships.data,
-      invitations: invitations.data
+      creatorEmail
     }
   } catch (error) {
     console.error('Error fetching organization data:', error)
-    return { organization: null, members: [], invitations: [] }
+    return { organization: null, creatorEmail: null }
   }
 }
 
 export default async function OrganizationPage() {
-  const { organization, members, invitations } = await getData()
+  const { organization, creatorEmail } = await getData()
 
   if (!organization) {
     return <OrganizationLoadingSkeleton />
   }
 
   return (
-    <div className='container p-8'>
-      <div className='mx-auto max-w-4xl'>
-        <div className='mb-6 flex items-center space-x-4'>
-          <Avatar className='h-20 w-20'>
-            <AvatarImage src={organization.imageUrl} alt={organization.name} />
-            <AvatarFallback className='text-lg'>
-              {organization.name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className='text-2xl font-bold'>{organization.name}</h1>
-            <p className='text-muted-foreground'>{organization.slug}</p>
-          </div>
+    <div className='container px-4 py-6 md:px-6 md:py-8'>
+      <div className='mx-auto max-w-6xl'>
+        <AdminPageHeader
+          title='Organization Settings'
+          description="Manage your organization's profile, members, and invitations."
+        />
+
+        <div className='mt-6 space-y-6'>
+          <OrganizationDetailsForm
+            organizationName={organization.name}
+            organizationSlug={organization.slug || ''}
+            organizationImageUrl={organization.imageUrl}
+            organizationId={organization.id}
+            createdAt={organization.createdAt}
+            updatedAt={organization.updatedAt}
+            creatorEmail={creatorEmail}
+          />
         </div>
-
-        <Tabs defaultValue='organization' className='w-full'>
-          <TabsList className='mb-6'>
-            <TabsTrigger value='organization'>Organization</TabsTrigger>
-            <TabsTrigger value='members'>
-              Members ({members.length})
-            </TabsTrigger>
-            <TabsTrigger value='invitations'>
-              Invitations ({invitations.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value='organization' className='space-y-6'>
-            <OrganizationDetailsTab organization={organization} />
-          </TabsContent>
-
-          <TabsContent value='members' className='space-y-6'>
-            <OrganizationMembersTab members={members} />
-          </TabsContent>
-
-          <TabsContent value='invitations' className='space-y-6'>
-            <OrganizationInvitationsTab invitations={invitations} />
-          </TabsContent>
-        </Tabs>
       </div>
     </div>
   )

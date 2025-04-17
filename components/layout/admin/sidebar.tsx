@@ -1,11 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import {
-  HeartHandshakeIcon,
-  HelpCircleIcon,
-  SettingsIcon
-} from 'lucide-react'
+import { HeartHandshakeIcon, Library, SettingsIcon } from 'lucide-react'
 
 import { AdminNavMain } from '@/components/layout/admin/nav/nav-main'
 import { NavUser } from '@/components/layout/shared/nav-user'
@@ -22,14 +18,9 @@ import { NavFooter } from '@/components/layout/shared/nav-footer'
 
 export function AdminSidebar({
   ...props
-}: React.ComponentProps<
-  typeof Sidebar
->) {
+}: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar
-      collapsible='icon'
-      {...props}
-    >
+    <Sidebar collapsible='icon' {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -37,11 +28,9 @@ export function AdminSidebar({
               asChild
               className='data-[slot=sidebar-menu-button]:!p-1.5'
             >
-              <a href='/admin'>
+              <a href='/admin/dashboard'>
                 <HeartHandshakeIcon className='text-primary h-5 w-5' />
-                <span className='text-base font-semibold'>
-                  Admin Panel
-                </span>
+                <span className='text-base font-semibold'>Admin Panel</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -54,13 +43,15 @@ export function AdminSidebar({
           items={[
             {
               title: 'Settings',
-              url: '/settings',
+              url: '/admin/settings',
               icon: SettingsIcon
             },
             {
-              title: 'Get Help',
-              url: '/help',
-              icon: HelpCircleIcon
+              title: 'Docs',
+              url: '/docs',
+              icon: Library,
+              target: '_blank',
+              rel: 'noopener noreferrer'
             }
           ]}
         />

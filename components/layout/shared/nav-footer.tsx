@@ -21,6 +21,8 @@ export function NavFooter({
     title: string
     url: string
     icon: LucideIcon
+    target?: string
+    rel?: string
   }[]
 } & React.ComponentPropsWithoutRef<
   typeof SidebarGroup
@@ -37,7 +39,7 @@ export function NavFooter({
                 tooltip={item.title}
                 asChild
               >
-                <a href={item.url}>
+                <a href={item.url} target={item.target} rel={item.rel}>
                   <item.icon />
                   <span>
                     {item.title}

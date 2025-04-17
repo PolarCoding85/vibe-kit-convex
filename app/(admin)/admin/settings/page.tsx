@@ -21,7 +21,7 @@ export default function SettingsForm() {
   // Debug logs
   console.log('User ID:', userId)
   console.log('Session ID:', sessionId)
-  console.log('Is Admin:', has?.({ role: 'org:admin' }))
+  console.log('Is Super Admin:', has?.({ role: 'org:super_admin' }))
 
   return (
     <div className='container mx-auto p-8'>
