@@ -84,13 +84,7 @@ export function ProtectedSidebar({
         />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser
-          user={{
-            name: 'User',
-            email: 'user@example.com',
-            avatar: '/avatars/user.jpg'
-          }}
-        />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )

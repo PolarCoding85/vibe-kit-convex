@@ -66,13 +66,7 @@ export function AdminSidebar({
         />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser
-          user={{
-            name: 'Admin User',
-            email: 'admin@example.com',
-            avatar: '/avatars/admin.jpg'
-          }}
-        />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )

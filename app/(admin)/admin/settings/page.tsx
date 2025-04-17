@@ -1,7 +1,5 @@
 // app/(admin)/admin/settings/page.tsx
-// This page implements a view/edit pattern for team settings
-// - All users with access can view the settings
-// - Only users with 'org:team_settings:edit' permission can edit
+// This page shows settings cards with appropriate permissions
 
 'use client'
 
@@ -16,144 +14,123 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card'
-import { Edit } from 'lucide-react'
+import { Edit, User, Building, Users, Link as LinkIcon } from 'lucide-react'
+import Link from 'next/link'
 
 export default function SettingsForm() {
   const { userId, sessionId, has } = useAuth()
-  const [isEditing, setIsEditing] = useState(false)
-  const [teamName, setTeamName] = useState('Demo Team') // Pre-populated for demo
-  const [teamDescription, setTeamDescription] = useState(
-    'This is a demo team description'
-  ) // Pre-populated for demo
 
   // Debug logs
   console.log('User ID:', userId)
   console.log('Session ID:', sessionId)
   console.log('Is Admin:', has?.({ role: 'org:admin' }))
-  console.log(
-    'Can Edit Team Settings:',
-    has?.({ permission: 'org:team_settings:edit' })
-  )
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // TODO: Implement team settings update logic
-    console.log('Team settings updated:', { teamName, teamDescription })
-    setIsEditing(false)
-  }
 
   return (
-    <div className='container p-8'>
-      <Card className='mx-auto max-w-4xl'>
-        <CardHeader className='flex flex-row items-center justify-between'>
-          <div>
-            <CardTitle>Team Settings</CardTitle>
-            <CardDescription>Manage your team settings</CardDescription>
-          </div>
+    <div className='container mx-auto p-8'>
+      <h1 className='mb-6 text-2xl font-bold'>Admin Settings</h1>
 
-          {/* Edit button - only shown to users with edit permission */}
-          <Protect permission='org:team_settings:edit' fallback={null}>
-            {!isEditing && (
-              <Button
-                variant='outline'
-                onClick={() => setIsEditing(true)}
-                className='ml-4'
-              >
-                <Edit className='mr-2 size-4' />
-                Edit Settings
-              </Button>
-            )}
-          </Protect>
-        </CardHeader>
-
-        <CardContent>
-          {/* View-only content - shown to all users with page access */}
-          {!isEditing && (
-            <div className='space-y-4'>
-              <div>
-                <Label
-                  htmlFor='teamName'
-                  className='block text-sm font-medium text-gray-700'
-                >
-                  Team Name
-                </Label>
-                <Input
-                  type='text'
-                  id='teamName'
-                  value={teamName}
-                  disabled
-                  className='focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm'
-                />
-              </div>
-              <div>
-                <Label
-                  htmlFor='teamDescription'
-                  className='block text-sm font-medium text-gray-700'
-                >
-                  Team Description
-                </Label>
-                <Textarea
-                  id='teamDescription'
-                  value={teamDescription}
-                  disabled
-                  rows={3}
-                  className='focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm'
-                />
-              </div>
+      <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2'>
+        {/* Profile Settings Card - No permissions required */}
+        <Card className='transition-shadow duration-300 hover:shadow-md'>
+          <CardHeader className='flex flex-row items-center gap-4'>
+            <User className='text-primary size-8' />
+            <div>
+              <CardTitle>Profile Settings</CardTitle>
+              <CardDescription>
+                Manage your personal profile settings
+              </CardDescription>
             </div>
-          )}
+          </CardHeader>
+          <CardContent>
+            <p>
+              Update your profile information, preferences, and account
+              settings.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Link href='/admin/settings/profile'>
+              <Button>Manage Profile</Button>
+            </Link>
+          </CardFooter>
+        </Card>
 
-          {/* Edit form - only shown to users with edit permission when editing */}
-          <Protect permission='org:team_settings:edit' fallback={null}>
-            {isEditing && (
-              <form onSubmit={handleSubmit} className='space-y-4'>
-                <div>
-                  <Label
-                    htmlFor='teamName'
-                    className='block text-sm font-medium text-gray-700'
-                  >
-                    Team Name
-                  </Label>
-                  <Input
-                    type='text'
-                    id='teamName'
-                    value={teamName}
-                    onChange={e => setTeamName(e.target.value)}
-                    className='focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200'
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor='teamDescription'
-                    className='block text-sm font-medium text-gray-700'
-                  >
-                    Team Description
-                  </Label>
-                  <Textarea
-                    id='teamDescription'
-                    value={teamDescription}
-                    onChange={e => setTeamDescription(e.target.value)}
-                    rows={3}
-                    className='focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200'
-                  />
-                </div>
-                <div className='flex space-x-2'>
-                  <Button type='submit'>Save Changes</Button>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    onClick={() => setIsEditing(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            )}
-          </Protect>
-        </CardContent>
-      </Card>
+        {/* Organization Settings Card - Requires org:sys_profile:manage permission */}
+        <Protect permission='org:sys_profile:manage' fallback={null}>
+          <Card className='transition-shadow duration-300 hover:shadow-md'>
+            <CardHeader className='flex flex-row items-center gap-4'>
+              <Building className='text-primary size-8' />
+              <div>
+                <CardTitle>Organization Settings</CardTitle>
+                <CardDescription>
+                  Manage your organization settings
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p>
+                Configure organization details, branding, and global
+                preferences.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Link href='/admin/settings/organization'>
+                <Button>Manage Organization</Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </Protect>
+
+        {/* Team Settings Card - Requires org:team_settings:manage permission */}
+        <Protect permission='org:team_settings:manage' fallback={null}>
+          <Card className='transition-shadow duration-300 hover:shadow-md'>
+            <CardHeader className='flex flex-row items-center gap-4'>
+              <Users className='text-primary size-8' />
+              <div>
+                <CardTitle>Team Settings</CardTitle>
+                <CardDescription>Manage your team settings</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p>
+                Manage team members, roles, permissions, and team-specific
+                configurations.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Link href='/admin/settings/team'>
+                <Button>Manage Team</Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </Protect>
+
+        {/* Integrations Settings Card - Requires org:integrations_settings:manage permission */}
+        <Protect permission='org:integration_settings:manage' fallback={null}>
+          <Card className='transition-shadow duration-300 hover:shadow-md'>
+            <CardHeader className='flex flex-row items-center gap-4'>
+              <LinkIcon className='text-primary size-8' />
+              <div>
+                <CardTitle>Integration Settings</CardTitle>
+                <CardDescription>Manage your integrations</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p>
+                Configure third-party integrations, APIs, and connected
+                services.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Link href='/admin/settings/integrations'>
+                <Button>Manage Integrations</Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </Protect>
+      </div>
     </div>
   )
 }
