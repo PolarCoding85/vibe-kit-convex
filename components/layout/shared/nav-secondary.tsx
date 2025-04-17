@@ -2,12 +2,7 @@
 
 'use client'
 
-import {
-  FolderIcon,
-  MoreHorizontalIcon,
-  ShareIcon,
-  type LucideIcon
-} from 'lucide-react'
+import { MoreHorizontalIcon, type LucideIcon } from 'lucide-react'
 
 import {
   DropdownMenu,
@@ -40,14 +35,10 @@ export function NavSecondary({
 
   return (
     <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
-      <SidebarGroupLabel>
-        {label}
-      </SidebarGroupLabel>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map(item => (
-          <SidebarMenuItem
-            key={item.name}
-          >
+          <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
               <a href={item.url}>
                 <item.icon />
@@ -55,31 +46,19 @@ export function NavSecondary({
               </a>
             </SidebarMenuButton>
             <DropdownMenu>
-              <DropdownMenuTrigger
-                asChild
-              >
+              <DropdownMenuTrigger asChild>
                 <SidebarMenuAction
                   showOnHover
                   className='data-[state=open]:bg-accent rounded-sm'
                 >
                   <MoreHorizontalIcon />
-                  <span className='sr-only'>
-                    More
-                  </span>
+                  <span className='sr-only'>More</span>
                 </SidebarMenuAction>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className='w-24 rounded-lg'
-                side={
-                  isMobile
-                    ? 'bottom'
-                    : 'right'
-                }
-                align={
-                  isMobile
-                    ? 'end'
-                    : 'start'
-                }
+                side={isMobile ? 'bottom' : 'right'}
+                align={isMobile ? 'end' : 'start'}
               >
                 <DropdownMenuItem>
                   <item.icon />

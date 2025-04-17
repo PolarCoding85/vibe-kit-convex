@@ -8,8 +8,7 @@ const plans = [
   {
     name: 'Starter',
     price: '$79',
-    description:
-      'Perfect for your first SaaS project',
+    description: 'Perfect for your first SaaS project',
     features: [
       'Complete SaaS Starter Kit',
       'Clerk Authentication',
@@ -26,8 +25,7 @@ const plans = [
   {
     name: 'Pro',
     price: '$149',
-    description:
-      'For serious SaaS builders',
+    description: 'For serious SaaS builders',
     features: [
       'Everything in Starter',
       'Unlimited Projects',
@@ -44,8 +42,7 @@ const plans = [
   {
     name: 'Agency',
     price: '$299',
-    description:
-      'Build for multiple clients',
+    description: 'Build for multiple clients',
     features: [
       'Everything in Pro',
       'Client-Ready License',
@@ -63,10 +60,7 @@ const plans = [
 
 export const PricingSection = () => {
   return (
-    <section
-      id='pricing'
-      className='relative overflow-hidden py-20'
-    >
+    <section id='pricing' className='relative overflow-hidden py-20'>
       <div className='container mx-auto px-4'>
         <div className='mx-auto mb-16 max-w-3xl text-center'>
           <h2 className='mb-4 text-3xl font-bold md:text-4xl'>
@@ -76,9 +70,8 @@ export const PricingSection = () => {
             </span>
           </h2>
           <p className='text-muted-foreground text-lg'>
-            Choose the plan that fits
-            your needs. One-time
-            payment, no subscriptions.
+            Choose the plan that fits your needs. One-time payment, no
+            subscriptions.
           </p>
         </div>
 
@@ -99,20 +92,12 @@ export const PricingSection = () => {
               )}
 
               <div className='p-6'>
-                <h3 className='mb-2 text-xl font-semibold'>
-                  {plan.name}
-                </h3>
+                <h3 className='mb-2 text-xl font-semibold'>{plan.name}</h3>
                 <div className='mb-4'>
-                  <span className='text-3xl font-bold'>
-                    {plan.price}
-                  </span>
-                  <span className='ml-1 text-gray-400'>
-                    one-time
-                  </span>
+                  <span className='text-3xl font-bold'>{plan.price}</span>
+                  <span className='ml-1 text-gray-400'>one-time</span>
                 </div>
-                <p className='mb-6 text-gray-400'>
-                  {plan.description}
-                </p>
+                <p className='mb-6 text-gray-400'>{plan.description}</p>
 
                 <Button
                   className={`w-full rounded-xl ${
@@ -126,23 +111,14 @@ export const PricingSection = () => {
               </div>
 
               <div className='border-t border-gray-800 p-6'>
-                <p className='mb-4 font-medium'>
-                  What's included:
-                </p>
+                <p className='mb-4 font-medium'>What&apos;s included:</p>
                 <ul className='space-y-3'>
-                  {plan.features.map(
-                    (feature, i) => (
-                      <li
-                        key={i}
-                        className='flex items-start'
-                      >
-                        <CheckCircle className='text-primary mt-0.5 mr-3 h-5 w-5 shrink-0' />
-                        <span className='text-gray-300'>
-                          {feature}
-                        </span>
-                      </li>
-                    )
-                  )}
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className='flex items-start'>
+                      <CheckCircle className='text-primary mt-0.5 mr-3 h-5 w-5 shrink-0' />
+                      <span className='text-gray-300'>{feature}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -150,23 +126,13 @@ export const PricingSection = () => {
         </div>
 
         <div className='mx-auto mt-16 max-w-2xl rounded-lg border border-gray-800 bg-gray-900/30 p-6 text-center'>
-          <h3 className='mb-2 text-xl font-semibold'>
-            Need something custom?
-          </h3>
+          <h3 className='mb-2 text-xl font-semibold'>Need something custom?</h3>
           <p className='mb-4 text-gray-400'>
-            We offer custom development
-            and integration services for
-            teams with specific
-            requirements.
+            We offer custom development and integration services for teams with
+            specific requirements.
           </p>
-          <Button
-            variant='outline'
-            className='rounded-xl'
-            asChild
-          >
-            <Link href='/contact'>
-              Contact Us
-            </Link>
+          <Button variant='outline' className='rounded-xl' asChild>
+            <Link href='/contact'>Contact Us</Link>
           </Button>
         </div>
       </div>

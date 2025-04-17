@@ -4,11 +4,7 @@
 'use client'
 
 import { Protect, useAuth } from '@clerk/nextjs'
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Label } from '@radix-ui/react-label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Card,
   CardContent,
@@ -17,7 +13,7 @@ import {
   CardTitle,
   CardFooter
 } from '@/components/ui/card'
-import { Edit, User, Building, Users, Link as LinkIcon } from 'lucide-react'
+import { User, Building, Users, Link as LinkIcon } from 'lucide-react'
 import Link from 'next/link'
 
 export default function SettingsForm() {

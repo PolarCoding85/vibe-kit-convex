@@ -1,11 +1,7 @@
 // components/pages/marketing/landing/hero-section.tsx
 
 import { Button } from '@/components/ui/button'
-import {
-  ArrowRight,
-  Code,
-  Github
-} from 'lucide-react'
+import { ArrowRight, Code, Github } from 'lucide-react'
 import Link from 'next/link'
 
 export const HeroSection = () => {
@@ -22,8 +18,7 @@ export const HeroSection = () => {
           <div className='border-primary/30 bg-primary/10 text-primary mb-6 inline-flex items-center rounded-full border px-3 py-1'>
             <Code className='mr-2 h-4 w-4' />
             <span className='text-sm font-medium'>
-              The Ultimate SaaS
-              Development Kit
+              The Ultimate SaaS Development Kit
             </span>
           </div>
 
@@ -37,11 +32,8 @@ export const HeroSection = () => {
           </h1>
 
           <p className='text-muted-foreground mx-auto mb-8 max-w-2xl text-xl'>
-            A production-ready starter
-            kit with everything you need
-            to launch your SaaS fast.
-            Next.js, TypeScript,
-            Tailwind CSS, Clerk, Stripe,
+            A production-ready starter kit with everything you need to launch
+            your SaaS fast. Next.js, TypeScript, Tailwind CSS, Clerk, Stripe,
             and more.
           </p>
 
@@ -171,43 +163,25 @@ export const HeroSection = () => {
           </div>
           <div className='dark:bg-background overflow-x-auto bg-gray-800 p-6 font-mono text-sm'>
             <pre className='text-gray-300'>
-              <span className='text-blue-400'>
-                import
-              </span>{' '}
-              <span className='text-yellow-300'>
-                {'{ DashboardHeader }'}
-              </span>{' '}
-              <span className='text-blue-400'>
-                from
-              </span>{' '}
+              <span className='text-blue-400'>import</span>{' '}
+              <span className='text-yellow-300'>{'{ DashboardHeader }'}</span>{' '}
+              <span className='text-blue-400'>from</span>{' '}
               <span className='text-green-300'>
-                "@/components/dashboard/header"
+                &quot;@/components/dashboard/header&quot;
               </span>
               ;<br />
-              <span className='text-blue-400'>
-                import
-              </span>{' '}
-              <span className='text-yellow-300'>
-                {'{ DashboardShell }'}
-              </span>{' '}
-              <span className='text-blue-400'>
-                from
-              </span>{' '}
+              <span className='text-blue-400'>import</span>{' '}
+              <span className='text-yellow-300'>{'{ DashboardShell }'}</span>{' '}
+              <span className='text-blue-400'>from</span>{' '}
               <span className='text-green-300'>
-                "@/components/dashboard/shell"
+                &quot;@/components/dashboard/shell&quot;
               </span>
               ;<br />
-              <span className='text-blue-400'>
-                import
-              </span>{' '}
-              <span className='text-yellow-300'>
-                {'{ Card }'}
-              </span>{' '}
-              <span className='text-blue-400'>
-                from
-              </span>{' '}
+              <span className='text-blue-400'>import</span>{' '}
+              <span className='text-yellow-300'>{'{ Card }'}</span>{' '}
+              <span className='text-blue-400'>from</span>{' '}
               <span className='text-green-300'>
-                "@/components/ui/card"
+                &quot;@/components/ui/card&quot;
               </span>
               ;
               <br />
@@ -215,136 +189,75 @@ export const HeroSection = () => {
               <span className='text-blue-400'>
                 export default function
               </span>{' '}
-              <span className='text-yellow-300'>
-                DashboardPage
-              </span>
+              <span className='text-yellow-300'>DashboardPage</span>
               () {'{'}
               <br />
-              <span className='ml-4'>
-                return (
-              </span>
+              <span className='ml-4'>return (</span>
               <br />
               <span className='ml-8'>
-                <span className='text-gray-500'>
-                  {'<'}
-                </span>
-                <span className='text-blue-300'>
-                  DashboardShell
-                </span>
-                <span className='text-gray-500'>
-                  {'>'}
-                </span>
+                <span className='text-gray-500'>{'<'}</span>
+                <span className='text-blue-300'>DashboardShell</span>
+                <span className='text-gray-500'>{'>'}</span>
               </span>
               <br />
               <span className='ml-12'>
-                <span className='text-gray-500'>
-                  {'<'}
-                </span>
-                <span className='text-blue-300'>
-                  DashboardHeader
-                </span>
+                <span className='text-gray-500'>{'<'}</span>
+                <span className='text-blue-300'>DashboardHeader</span>
               </span>
               <br />
               <span className='ml-16'>
                 heading
-                <span className='text-gray-500'>
-                  =
-                </span>
-                <span className='text-green-300'>
-                  "Dashboard"
-                </span>
+                <span className='text-gray-500'>=</span>
+                <span className='text-green-300'>&quot;Dashboard&quot;</span>
               </span>
               <br />
               <span className='ml-16'>
                 description
-                <span className='text-gray-500'>
-                  =
-                </span>
+                <span className='text-gray-500'>=</span>
                 <span className='text-green-300'>
-                  "Overview of your
-                  account."
+                  &quot;Overview of your account.&quot;
                 </span>
               </span>
               <br />
               <span className='ml-12'>
-                <span className='text-gray-500'>
-                  {'/>'}
-                </span>
+                <span className='text-gray-500'>{'/>'}</span>
               </span>
               <br />
               <span className='ml-12'>
-                <span className='text-gray-500'>
-                  {'<'}
-                </span>
-                <span className='text-blue-300'>
-                  div
-                </span>{' '}
-                className
-                <span className='text-gray-500'>
-                  =
-                </span>
+                <span className='text-gray-500'>{'<'}</span>
+                <span className='text-blue-300'>div</span> className
+                <span className='text-gray-500'>=</span>
                 <span className='text-green-300'>
-                  "grid gap-4
-                  md:grid-cols-2
-                  lg:grid-cols-4"
+                  &quot;grid gap-4 md:grid-cols-2 lg:grid-cols-4&quot;
                 </span>
-                <span className='text-gray-500'>
-                  {'>'}
-                </span>
+                <span className='text-gray-500'>{'>'}</span>
               </span>
               <br />
               <span className='ml-16'>
-                <span className='text-gray-500'>
-                  {'<'}
-                </span>
-                <span className='text-blue-300'>
-                  Card
-                </span>
-                <span className='text-gray-500'>
-                  {'>'}
-                </span>
+                <span className='text-gray-500'>{'<'}</span>
+                <span className='text-blue-300'>Card</span>
+                <span className='text-gray-500'>{'>'}</span>
                 <span className='text-primary'>
-                  // Your cards and
-                  dashboard content here
+                  {'// Your cards and dashboard content here'}
                 </span>
-                <span className='text-gray-500'>
-                  {'</'}
-                </span>
-                <span className='text-blue-300'>
-                  Card
-                </span>
-                <span className='text-gray-500'>
-                  {'>'}
-                </span>
+                <span className='text-gray-500'>{'</'}</span>
+                <span className='text-blue-300'>Card</span>
+                <span className='text-gray-500'>{'>'}</span>
               </span>
               <br />
               <span className='ml-12'>
-                <span className='text-gray-500'>
-                  {'</'}
-                </span>
-                <span className='text-blue-300'>
-                  div
-                </span>
-                <span className='text-gray-500'>
-                  {'>'}
-                </span>
+                <span className='text-gray-500'>{'</'}</span>
+                <span className='text-blue-300'>div</span>
+                <span className='text-gray-500'>{'>'}</span>
               </span>
               <br />
               <span className='ml-8'>
-                <span className='text-gray-500'>
-                  {'</'}
-                </span>
-                <span className='text-blue-300'>
-                  DashboardShell
-                </span>
-                <span className='text-gray-500'>
-                  {'>'}
-                </span>
+                <span className='text-gray-500'>{'</'}</span>
+                <span className='text-blue-300'>DashboardShell</span>
+                <span className='text-gray-500'>{'>'}</span>
               </span>
               <br />
-              <span className='ml-4'>
-                );
-              </span>
+              <span className='ml-4'>);</span>
               <br />
               {'}'}
             </pre>

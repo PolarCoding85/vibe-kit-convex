@@ -12,9 +12,10 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import { User } from '@clerk/backend'
 
 interface UserProfileTabProps {
-  user: any // Using any for now to avoid type issues
+  user: User
   organizationsCount: number
 }
 
@@ -54,9 +55,9 @@ export function UserProfileTab({
                 Email Address
               </h3>
               <p className='mt-1 text-sm'>
-                {user?.primaryEmailAddress?.emailAddress || 
-                 user?.emailAddresses?.[0]?.emailAddress || 
-                 'Not provided'}
+                {user?.primaryEmailAddress?.emailAddress ||
+                  user?.emailAddresses?.[0]?.emailAddress ||
+                  'Not provided'}
               </p>
             </div>
             <div>

@@ -27,7 +27,7 @@ async function getData() {
     name: string
     role: string
     imageUrl?: string
-    createdAt?: string
+    createdAt?: string | number
   }[] = []
 
   try {
@@ -39,7 +39,7 @@ async function getData() {
     })
 
     // Map the response data to our expected format
-    organizations = response.data.map((membership: any) => ({
+    organizations = response.data.map((membership) => ({
       id: membership.organization.id,
       name: membership.organization.name,
       role: membership.role,

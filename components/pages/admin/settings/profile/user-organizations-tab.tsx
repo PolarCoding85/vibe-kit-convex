@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { Building, Loader2, Check, Trash2 } from 'lucide-react'
+import Image from 'next/image'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -33,8 +34,22 @@ import {
 } from '@/app/api/organization/actions'
 import { organizationRoles } from '@/lib/constants/organizations'
 
+interface OrganizationMembership {
+  id: string
+  name: string
+  imageUrl?: string
+  createdAt?: string | number | Date
+  role: string
+  organization?: {
+    id: string
+    name: string
+    imageUrl?: string
+    createdAt?: string | number | Date
+  }
+}
+
 interface UserOrganizationsTabProps {
-  organizationList: any[] | null | undefined
+  organizationList: OrganizationMembership[] | null | undefined
   isLoaded: boolean
   userId?: string
 }
@@ -76,7 +91,6 @@ export function UserOrganizationsTab({
             <div className='space-y-4'>
               {organizationList.map(membership => {
                 // Handle both client-side and server-side data formats
-                const organization = membership.organization || {}
                 const orgId = membership.organization?.id || membership.id
                 const orgName = membership.organization?.name || membership.name
                 const orgImageUrl =
@@ -93,10 +107,12 @@ export function UserOrganizationsTab({
                     <div className='flex flex-1 items-center space-x-4'>
                       <div className='bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full'>
                         {orgImageUrl ? (
-                          <img
+                          <Image
                             src={orgImageUrl}
                             alt={orgName}
-                            className='h-10 w-10 rounded-full'
+                            width={40}
+                            height={40}
+                            className='h-10 w-10 rounded-full object-cover'
                           />
                         ) : (
                           <Building className='text-primary h-5 w-5' />
@@ -111,7 +127,13 @@ export function UserOrganizationsTab({
                           <span className='text-muted-foreground text-xs'>
                             Member since{' '}
                             {orgCreatedAt
-                              ? format(new Date(orgCreatedAt), 'MMM yyyy')
+                              ? (() => {
+                                try {
+                                  return format(new Date(orgCreatedAt), 'MMM yyyy')
+                                } catch (error) {
+                                  return 'Unknown'
+                                }
+                              })()
                               : 'Unknown'}
                           </span>
                         </div>
@@ -141,7 +163,7 @@ export function UserOrganizationsTab({
                                     description: result.message
                                   })
                                 }
-                              } catch (error) {
+                              } catch (_error) {
                                 toast.error('Error', {
                                   description: 'Failed to update role'
                                 })
@@ -232,7 +254,7 @@ export function UserOrganizationsTab({
                                     description: result.message
                                   })
                                 }
-                              } catch (error) {
+                              } catch (_error) {
                                 toast.error('Error', {
                                   description: 'Failed to leave organization'
                                 })

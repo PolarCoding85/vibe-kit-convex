@@ -19,11 +19,8 @@ export const CTASection = () => {
           </h2>
 
           <p className='mx-auto mb-8 max-w-2xl text-xl text-gray-400'>
-            Join hundreds of developers
-            who are shipping faster with
-            VibeKits. Your complete SaaS
-            foundation is just one click
-            away.
+            Join hundreds of developers who are shipping faster with VibeKits.
+            Your complete SaaS foundation is just one click away.
           </p>
 
           <div className='flex flex-col justify-center gap-4 sm:flex-row'>
@@ -41,20 +38,13 @@ export const CTASection = () => {
 
           <div className='mx-auto mt-12 max-w-md rounded-lg border border-gray-800 bg-gray-900/50 p-6'>
             <p className='text-sm text-gray-400'>
-              "VibeKit saved me weeks of
-              setup time and helped me
-              launch my SaaS in record
-              time. The code quality and
-              structure made it a dream
-              to customize."
+              &quot;VibeKit saved me weeks of setup time and helped me launch my
+              SaaS in record time. The code quality and structure made it a
+              dream to customize.&quot;
             </p>
             <div className='mt-4'>
-              <p className='font-medium'>
-                Alex Chen
-              </p>
-              <p className='text-sm text-gray-500'>
-                Founder, DevFlow
-              </p>
+              <p className='font-medium'>Alex Chen</p>
+              <p className='text-sm text-gray-500'>Founder, DevFlow</p>
             </div>
           </div>
         </div>
