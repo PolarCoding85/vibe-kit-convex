@@ -4,13 +4,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import {
-  HeartHandshake,
-  ShieldAlert,
-  ArrowLeft,
-  Lock,
-  AlertTriangle
-} from 'lucide-react'
+import { ShieldAlert, ArrowLeft, Lock, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
@@ -21,7 +15,7 @@ export default function UnauthorizedPage() {
   const [clickCount, setClickCount] = useState(0)
   const [isClient, setIsClient] = useState(false)
   const confettiRef = useRef<HTMLCanvasElement>(null)
-  
+
   // This ensures we only render certain elements on the client to avoid hydration errors
   useEffect(() => {
     setIsClient(true)
@@ -124,35 +118,36 @@ export default function UnauthorizedPage() {
       />
 
       {/* Floating particles - client-side only to avoid hydration errors */}
-      {isClient && Array.from({ length: 20 }).map((_, i) => {
-        const randomX = Math.random() * 100
-        const randomY = Math.random() * 100
-        const duration = Math.random() * 10 + 15
+      {isClient &&
+        Array.from({ length: 20 }).map((_, i) => {
+          const randomX = Math.random() * 100
+          const randomY = Math.random() * 100
+          const duration = Math.random() * 10 + 15
 
-        return (
-          <motion.div
-            key={i}
-            className='absolute h-1 w-1 rounded-full bg-red-500/30'
-            initial={{
-              x: `${randomX}%`,
-              y: `${randomY}%`,
-              opacity: Math.random() * 0.5 + 0.3,
-              scale: Math.random() * 0.5 + 0.5
-            }}
-            animate={{
-              x: [`${randomX}%`, `${(randomX + 10) % 100}%`, `${randomX}%`],
-              y: [`${randomY}%`, `${(randomY + 10) % 100}%`, `${randomY}%`],
-              opacity: [0.3, 0.6, 0.3],
-              scale: [1, 1.5, 1]
-            }}
-            transition={{
-              duration: duration,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-          />
-        )
-      })}
+          return (
+            <motion.div
+              key={i}
+              className='absolute h-1 w-1 rounded-full bg-red-500/30'
+              initial={{
+                x: `${randomX}%`,
+                y: `${randomY}%`,
+                opacity: Math.random() * 0.5 + 0.3,
+                scale: Math.random() * 0.5 + 0.5
+              }}
+              animate={{
+                x: [`${randomX}%`, `${(randomX + 10) % 100}%`, `${randomX}%`],
+                y: [`${randomY}%`, `${(randomY + 10) % 100}%`, `${randomY}%`],
+                opacity: [0.3, 0.6, 0.3],
+                scale: [1, 1.5, 1]
+              }}
+              transition={{
+                duration: duration,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+            />
+          )
+        })}
 
       {/* Main content */}
       <motion.div
@@ -225,8 +220,8 @@ export default function UnauthorizedPage() {
             </div>
 
             <p className='mb-4 text-gray-300'>
-              You do not have permission to access this page. The area you're
-              trying to reach requires
+              You do not have permission to access this page. The area
+              you&apos;re trying to reach requires
               {showEasterEgg
                 ? ' special clearance, but at least you found a hidden secret! 🎮'
                 : ' proper authorization.'}

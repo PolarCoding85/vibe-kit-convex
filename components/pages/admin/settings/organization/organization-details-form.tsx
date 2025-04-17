@@ -115,7 +115,7 @@ export function OrganizationDetailsForm({
       <CardHeader>
         <CardTitle>Organization Details</CardTitle>
         <CardDescription>
-          Update your organization's profile information
+          Update your organization&apos;s profile information
         </CardDescription>
       </CardHeader>
       <Form {...form}>

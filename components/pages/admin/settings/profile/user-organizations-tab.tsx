@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { Building, Loader2, Check, Trash2, Save } from 'lucide-react'
+import { Building, Loader2, Trash2, Save } from 'lucide-react'
 import Image from 'next/image'
 
 import { Badge } from '@/components/ui/badge'

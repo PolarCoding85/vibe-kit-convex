@@ -93,7 +93,7 @@ export function TeamMembersTab({ members }: TeamMembersTabProps) {
       setLocalMembers(prev =>
         prev.map(member =>
           member.publicUserData?.userId === memberId
-            ? { ...(member as any), role: newRole }
+            ? { ...member, role: newRole }
             : member
         )
       )
@@ -121,7 +121,7 @@ export function TeamMembersTab({ members }: TeamMembersTabProps) {
       setLocalMembers(prev =>
         prev.map(member =>
           member.publicUserData?.userId === memberId
-            ? { ...(member as any), status: newStatus }
+            ? { ...member, status: newStatus }
             : member
         )
       )
