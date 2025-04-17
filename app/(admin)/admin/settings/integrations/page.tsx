@@ -2,10 +2,14 @@
 
 'use client'
 
-import { Check, ChevronsUpDown, Plus, Search, X } from 'lucide-react'
+import { ChevronsUpDown, Plus, Search, X } from 'lucide-react'
 import { useState, useCallback } from 'react'
 
-import { sampleIntegrationCategories, INTEGRATION_CATEGORIES, INTEGRATION_CATEGORY_ID } from '@/lib/constants/integrations'
+import {
+  sampleIntegrationCategories,
+  INTEGRATION_CATEGORIES,
+  INTEGRATION_CATEGORY_ID
+} from '@/lib/constants/integrations'
 import { IntegrationCategory } from '@/types/integrations'
 import { AdminPageHeader } from '@/components/layout/admin/admin-page-header'
 import { IntegrationCategorySection } from '@/components/pages/admin/settings/integrations/integration-category-section'
@@ -21,20 +25,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
 
 export default function IntegrationsSettingsPage() {
   const [activeTab, setActiveTab] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
-  const [selectedCategories, setSelectedCategories] = useState<INTEGRATION_CATEGORY_ID[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<
+    INTEGRATION_CATEGORY_ID[]
+  >([])
 
   // Filter integrations based on active tab, search query and selected categories
   const filteredCategories = sampleIntegrationCategories
     .map((category: IntegrationCategory) => {
       // Check if category is selected in filter (or if no categories are selected)
-      const categoryVisible = 
-        selectedCategories.length === 0 || 
+      const categoryVisible =
+        selectedCategories.length === 0 ||
         selectedCategories.includes(category.id as INTEGRATION_CATEGORY_ID)
 
       // If category isn't selected in filter, don't include it
@@ -75,15 +80,18 @@ export default function IntegrationsSettingsPage() {
   }
 
   // Handle category filter toggle
-  const toggleCategoryFilter = useCallback((categoryId: INTEGRATION_CATEGORY_ID) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(categoryId)) {
-        return prev.filter(id => id !== categoryId)
-      } else {
-        return [...prev, categoryId]
-      }
-    })
-  }, [])
+  const toggleCategoryFilter = useCallback(
+    (categoryId: INTEGRATION_CATEGORY_ID) => {
+      setSelectedCategories(prev => {
+        if (prev.includes(categoryId)) {
+          return prev.filter(id => id !== categoryId)
+        } else {
+          return [...prev, categoryId]
+        }
+      })
+    },
+    []
+  )
 
   // Handle clearing all category filters
   const clearCategoryFilters = useCallback(() => {
@@ -99,7 +107,7 @@ export default function IntegrationsSettingsPage() {
 
       <div className='flex flex-col space-y-6'>
         {/* Control Bar */}
-        <div className='flex flex-col space-y-4 rounded-lg border bg-card p-4'>
+        <div className='bg-card flex flex-col space-y-4 rounded-lg border p-4'>
           {/* Top row with tabs, filter, search and add button */}
           <div className='flex flex-wrap items-center justify-between gap-4'>
             <div className='flex flex-wrap items-center gap-2'>
@@ -109,30 +117,34 @@ export default function IntegrationsSettingsPage() {
                 onValueChange={setActiveTab}
                 className='w-auto'
               >
-                <TabsList className="grid w-auto grid-cols-3">
+                <TabsList className='grid w-auto grid-cols-3'>
                   <TabsTrigger value='all'>All Applications</TabsTrigger>
                   <TabsTrigger value='connected'>Connected</TabsTrigger>
                   <TabsTrigger value='disconnected'>Disconnected</TabsTrigger>
                 </TabsList>
               </Tabs>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9 flex items-center gap-1">
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='flex h-9 items-center gap-1'
+                  >
                     Categories
-                    <ChevronsUpDown className="h-4 w-4" />
+                    <ChevronsUpDown className='h-4 w-4' />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
+                <DropdownMenuContent className='w-56'>
                   <DropdownMenuLabel>Filter by category</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {Object.values(INTEGRATION_CATEGORIES).map((category) => (
+                  {Object.values(INTEGRATION_CATEGORIES).map(category => (
                     <DropdownMenuCheckboxItem
                       key={category.id}
                       checked={selectedCategories.includes(category.id)}
                       onCheckedChange={() => toggleCategoryFilter(category.id)}
                     >
-                      <span className="flex items-center">
+                      <span className='flex items-center'>
                         {category.title}
                       </span>
                     </DropdownMenuCheckboxItem>
@@ -147,49 +159,51 @@ export default function IntegrationsSettingsPage() {
                 <Input
                   type='search'
                   placeholder='Search integrations...'
-                  className='w-[200px] md:w-[250px] h-9 pl-8'
+                  className='h-9 w-[200px] pl-8 md:w-[250px]'
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                 />
               </div>
-              
-              <Button 
-                variant='default' 
-                size="sm"
-                className="h-9 bg-green-500 hover:bg-green-600 text-white"
+
+              <Button
+                variant='default'
+                size='sm'
+                className='h-9 bg-green-500 text-white hover:bg-green-600'
                 onClick={() => setShowAddForm(true)}
               >
-                <Plus className="mr-1 h-4 w-4" /> Add Integration
+                <Plus className='mr-1 h-4 w-4' /> Add Integration
               </Button>
             </div>
           </div>
-          
+
           {/* Filter chips row */}
           {selectedCategories.length > 0 && (
-            <div className="flex items-center gap-2 pt-1">
-              <span className="text-sm text-muted-foreground">Filtering by:</span>
-              <div className="flex flex-wrap gap-2">
+            <div className='flex items-center gap-2 pt-1'>
+              <span className='text-muted-foreground text-sm'>
+                Filtering by:
+              </span>
+              <div className='flex flex-wrap gap-2'>
                 {selectedCategories.map(categoryId => (
-                  <div 
-                    key={categoryId} 
-                    className="flex items-center gap-1 bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs"
+                  <div
+                    key={categoryId}
+                    className='bg-secondary text-secondary-foreground flex items-center gap-1 rounded-md px-2 py-1 text-xs'
                   >
                     {INTEGRATION_CATEGORIES[categoryId].title}
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 p-0" 
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='h-4 w-4 p-0'
                       onClick={() => toggleCategoryFilter(categoryId)}
                     >
-                      <span className="sr-only">Remove filter</span>
-                      <X className="h-3 w-3" />
+                      <span className='sr-only'>Remove filter</span>
+                      <X className='h-3 w-3' />
                     </Button>
                   </div>
                 ))}
-                <Button 
-                  variant="link" 
-                  size="sm" 
-                  className="text-xs h-6 p-0" 
+                <Button
+                  variant='link'
+                  size='sm'
+                  className='h-6 p-0 text-xs'
                   onClick={clearCategoryFilters}
                 >
                   Clear all
@@ -206,9 +220,9 @@ export default function IntegrationsSettingsPage() {
             onToggleConnection={handleConnectionToggle}
           />
         ))}
-        
+
         {/* Add Integration Form Dialog */}
-        <AddIntegrationForm 
+        <AddIntegrationForm
           open={showAddForm}
           onOpenChange={setShowAddForm}
           onIntegrationAdded={handleIntegrationAdded}
