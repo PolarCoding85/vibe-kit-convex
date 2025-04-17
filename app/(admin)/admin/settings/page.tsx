@@ -1,5 +1,4 @@
 // app/(admin)/admin/settings/page.tsx
-// This page shows settings cards with appropriate permissions
 
 'use client'
 
