@@ -18,14 +18,14 @@ export default clerkMiddleware(async (auth, req) => {
     }
 
     // Check if user has admin role
-    const isAdmin = has({ role: 'org:admin' })
+    const isAdmin = has({ role: 'org:super_admin' })
     if (!isAdmin) {
       // Use the same URL construction pattern as org selection
       return NextResponse.redirect(new URL('/unauthorized', req.url))
     }
 
     // If has org and is admin, protect the route
-    await auth.protect({ role: 'org:admin' })
+    await auth.protect({ role: 'org:super_admin' })
   }
 
   // For protected routes, check org membership
