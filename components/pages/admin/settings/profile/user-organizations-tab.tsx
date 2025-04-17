@@ -128,12 +128,12 @@ export function UserOrganizationsTab({
                             Member since{' '}
                             {orgCreatedAt
                               ? (() => {
-                                try {
-                                  return format(new Date(orgCreatedAt), 'MMM yyyy')
-                                } catch (_) {
-                                  return 'Unknown'
-                                }
-                              })()
+                                  try {
+                                    return format(new Date(orgCreatedAt), 'MMM yyyy')
+                                  } catch {
+                                    return 'Unknown'
+                                  }
+                                })()
                               : 'Unknown'}
                           </span>
                         </div>
@@ -163,7 +163,7 @@ export function UserOrganizationsTab({
                                     description: result.message
                                   })
                                 }
-                              } catch (_) {
+                              } catch {
                                 toast.error('Error', {
                                   description: 'Failed to update role'
                                 })
@@ -254,7 +254,7 @@ export function UserOrganizationsTab({
                                     description: result.message
                                   })
                                 }
-                              } catch (_) {
+                              } catch {
                                 toast.error('Error', {
                                   description: 'Failed to leave organization'
                                 })
