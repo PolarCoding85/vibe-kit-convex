@@ -61,7 +61,7 @@ export const HeroSection = () => {
                 href='https://nextjs.org'
                 className='hover:text-primary transition-colors'
               >
-                Next.js 14
+                Next.js 15
               </Link>
             </div>
             <div className='flex items-center gap-2'>
