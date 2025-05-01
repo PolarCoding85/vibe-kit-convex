@@ -7,7 +7,7 @@ const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId, orgId, has } = await auth()
+  const { orgId, has } = await auth()
 
   // Check for admin routes first
   if (isAdminRoute(req)) {
