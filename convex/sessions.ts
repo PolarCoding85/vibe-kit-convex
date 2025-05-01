@@ -11,18 +11,58 @@ import { Id } from './_generated/dataModel'
 export const upsertFromClerk = internalMutation({
   args: {
     data: v.any(), // Session data from Clerk
-    eventType: v.string() // Event type like 'session.created', 'session.ended', etc.
+    eventType: v.string(), // Event type like 'session.created', 'session.ended', etc.
+    eventAttributes: v.optional(v.any()) // Optional event_attributes from the webhook containing client IP and user agent
   },
-  handler: async (ctx, { data, eventType }) => {
-    // First, find the user this session belongs to
-    const user = await ctx.db
+  handler: async (ctx, { data, eventType, eventAttributes }) => {
+    // Extract the user ID from either data.user.id or data.user_id (different Clerk formats)
+    const userId = data.user?.id || data.user_id
+    
+    // If we still don't have a user ID, handle specially
+    if (!userId) {
+      if (eventType === 'session.removed') {
+        // For removed sessions without user info, try to find and update directly
+        const existingSession = await ctx.db
+          .query('sessions')
+          .withIndex('byExternalId', q => q.eq('externalId', data.id))
+          .unique()
+        
+        if (existingSession) {
+          // Update the session status
+          await ctx.db.patch(existingSession._id, {
+            status: 'removed',
+            endedAt: new Date().toISOString()
+          })
+          return { success: true, sessionId: existingSession._id }
+        }
+      }
+      console.warn(`Cannot process session: Missing user information in ${eventType} event`)
+      return { success: false, reason: 'missing_user_info' }
+    }
+    
+    // Find the user this session belongs to
+    let userRecord = await ctx.db
       .query('users')
-      .withIndex('byExternalId', q => q.eq('externalId', data.user.id))
+      .withIndex('byExternalId', q => q.eq('externalId', userId))
       .unique()
 
-    if (!user) {
-      console.warn(`Cannot create session: User ${data.user.id} not found`)
-      return { success: false, reason: 'user_not_found' }
+    if (!userRecord) {
+      // If the user doesn't exist yet, this is a race condition where the session.created
+      // webhook arrived before the user.created webhook. Create a placeholder user.
+      console.log(`Creating placeholder user for session user ${userId}`)
+      const placeholderUserId = await ctx.db.insert('users', {
+        externalId: userId,
+        name: 'Placeholder User',
+        createdAt: new Date().toISOString(),
+        publicMetadata: { isPlaceholder: true }
+      })
+      
+      // Get the newly created user
+      userRecord = await ctx.db.get(placeholderUserId)
+      // This should never happen, but to satisfy TypeScript
+      if (!userRecord) {
+        throw new Error(`Failed to create placeholder user for ${userId}`)
+      }
     }
 
     // Check for existing session
@@ -46,21 +86,83 @@ export const upsertFromClerk = internalMutation({
       sessionStatus = 'pending'
     }
 
+    // Helper to convert timestamps (which can be numbers or strings) to ISO strings
+    const toISOString = (timestamp: any): string => {
+      if (timestamp === undefined || timestamp === null) {
+        return now;
+      }
+      if (typeof timestamp === 'number') {
+        return new Date(timestamp).toISOString();
+      }
+      if (typeof timestamp === 'string') {
+        // Check if it's already ISO format
+        if (timestamp.includes('T') && timestamp.includes('Z')) {
+          return timestamp;
+        }
+        // Try to convert it (could be a different string format)
+        return new Date(timestamp).toISOString();
+      }
+      return now; // Default fallback
+    };
+
+    // Extract HTTP request info from event attributes if available
+    let clientIp: string | undefined = undefined;
+    let userAgent: string | undefined = undefined;
+    
+    if (eventAttributes && typeof eventAttributes === 'object') {
+      const httpRequest = eventAttributes.http_request;
+      if (httpRequest && typeof httpRequest === 'object') {
+        // Get client IP address
+        if (typeof httpRequest.client_ip === 'string') {
+          clientIp = httpRequest.client_ip;
+        }
+        
+        // Get user agent string
+        if (typeof httpRequest.user_agent === 'string') {
+          userAgent = httpRequest.user_agent;
+        }
+      }
+    }
+    
+    // Parse user agent for browser and device info (simple detection)
+    let detectedBrowser: string | undefined = undefined;
+    let detectedDeviceType: string | undefined = undefined;
+    
+    if (userAgent) {
+      // Simple browser detection
+      if (userAgent.includes('Chrome')) {
+        detectedBrowser = 'Chrome';
+      } else if (userAgent.includes('Firefox')) {
+        detectedBrowser = 'Firefox';
+      } else if (userAgent.includes('Safari')) {
+        detectedBrowser = 'Safari';
+      } else if (userAgent.includes('Edge')) {
+        detectedBrowser = 'Edge';
+      }
+      
+      // Simple device type detection
+      if (userAgent.includes('Mobile')) {
+        detectedDeviceType = 'mobile';
+      } else {
+        detectedDeviceType = 'desktop';
+      }
+    }
+    
     const sessionData = {
       externalId: data.id,
-      userId: user._id,
+      userId: userRecord._id,
       status: sessionStatus,
-      createdAt: data.created_at || now,
-      lastActiveAt: data.last_active_at || now,
+      createdAt: toISOString(data.created_at),
+      lastActiveAt: toISOString(data.last_active_at),
       endedAt:
-        eventType.includes('ended') || eventType.includes('revoked')
+        eventType.includes('ended') || eventType.includes('revoked') || eventType.includes('removed')
           ? now
           : undefined,
-      // Client details if available
-      deviceType: data.device?.type,
-      browserName: data.device?.browser_name,
+      // Client details from both direct data and event attributes
+      deviceType: data.device?.type || detectedDeviceType,
+      browserName: data.device?.browser_name || detectedBrowser,
       clientId: data.client_id,
-      ipAddress: data.ip_address
+      ipAddress: data.ip_address || clientIp
     }
 
     if (existingSession) {

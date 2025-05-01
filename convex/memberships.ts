@@ -50,29 +50,83 @@ export const upsertFromClerk = internalMutation({
   },
   handler: async (ctx, { data, eventType }) => {
     // First, find the user
-    const user = await ctx.db
+    let user = await ctx.db
       .query('users')
       .withIndex('byExternalId', q =>
         q.eq('externalId', data.public_user_data.user_id)
       )
       .unique()
 
+    // If user doesn't exist but we have public_user_data, create a placeholder user
+    if (!user && data.public_user_data) {
+      const clerkUserId = data.public_user_data.user_id
+      const publicUserData = data.public_user_data
+      
+      // Extract name from public_user_data
+      const firstName = publicUserData.first_name || ''
+      const lastName = publicUserData.last_name || ''
+      const name = `${firstName} ${lastName}`.trim() || 'Unknown User'
+      const email = publicUserData.email_address || undefined
+
+      // Create a placeholder user with minimal available info
+      console.log(`Creating placeholder user for Clerk user ${clerkUserId}`)
+      const userId = await ctx.db.insert('users', {
+        externalId: clerkUserId,
+        name,
+        email,
+        createdAt: new Date().toISOString(),
+        publicMetadata: { isPlaceholder: true }
+      })
+
+      // Get the full user record
+      user = await ctx.db.get(userId)
+    }
+    
+    // If we still don't have a user, we can't proceed
     if (!user) {
       console.warn(
-        `Cannot create membership: User ${data.public_user_data.user_id} not found`
+        `Cannot create membership: User ${data.public_user_data?.user_id} not found and couldn't create placeholder`
       )
       return
     }
 
     // Then, find the organization
-    const organization = await ctx.db
+    let organization = await ctx.db
       .query('organizations')
       .withIndex('byExternalId', q => q.eq('externalId', data.organization.id))
       .unique()
 
+    // If organization doesn't exist, create a placeholder organization
+    if (!organization && data.organization) {
+      const clerkOrgId = data.organization.id
+      const orgData = data.organization
+      
+      // Extract basic info from the organization data
+      const name = orgData.name || 'Placeholder Organization'
+      const slug = orgData.slug || name.toLowerCase().replace(/[^a-z0-9]/g, '-')
+      
+      // Create a placeholder organization with minimal available info
+      console.log(`Creating placeholder organization for Clerk org ${clerkOrgId}`)
+      const orgId = await ctx.db.insert('organizations', {
+        externalId: clerkOrgId,
+        name,
+        slug,
+        createdAt: new Date().toISOString(),
+        publicMetadata: { isPlaceholder: true }
+      })
+      
+      // Get the full organization record
+      organization = await ctx.db.get(orgId)
+      // This should never happen, but to satisfy TypeScript
+      if (!organization) {
+        throw new Error(`Failed to create placeholder organization for ${clerkOrgId}`)
+      }
+    }
+    
+    // If we still don't have an organization, we can't proceed
     if (!organization) {
       console.warn(
-        `Cannot create membership: Organization ${data.organization.id} not found`
+        `Cannot create membership: Organization ${data.organization?.id} not found and couldn't create placeholder`
       )
       return
     }

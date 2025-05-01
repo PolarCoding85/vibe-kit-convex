@@ -1,9 +1,69 @@
 // convex/invitations.ts
 
 import { v } from 'convex/values'
-import { internalMutation } from './_generated/server'
+import { internalMutation, MutationCtx } from './_generated/server'
 import { Id } from './_generated/dataModel'
 import { authQuery } from './util/customFunctions'
+
+/**
+ * Helper function to extract the user who created an invitation from webhook event attributes
+ */
+async function getCreatorFromEventAttributes(
+  ctx: MutationCtx,
+  eventAttributes: any,
+  organizationId: Id<'organizations'>
+): Promise<Id<'users'> | undefined> {
+  try {
+    // Try to find the organization
+    const organization = await ctx.db.get(organizationId)
+    if (!organization) return undefined;
+    
+    // Check if organization has createdBy field and it's a string
+    const createdBy = organization.createdBy;
+    if (typeof createdBy === 'string') {
+      // Look up the user by their external ID
+      const creator = await ctx.db
+        .query('users')
+        .withIndex('byExternalId', q => q.eq('externalId', createdBy))
+        .unique()
+      
+      if (creator) {
+        return creator._id
+      }
+    }
+    
+    // If we have HTTP request data, try to match an active session by IP
+    if (eventAttributes && typeof eventAttributes === 'object') {
+      const httpRequest = eventAttributes.http_request;
+      
+      if (httpRequest && typeof httpRequest === 'object') {
+        const clientIp = httpRequest.client_ip;
+        
+        if (typeof clientIp === 'string') {
+          // Find sessions with the same IP address
+          const recentSessions = await ctx.db
+            .query('sessions')
+            .filter(q => q.eq(q.field('ipAddress'), clientIp))
+            .order('desc')
+            .take(5);
+          
+          // Look for active sessions
+          for (const session of recentSessions) {
+            if (session.status === 'active') {
+              return session.userId;
+            }
+          }
+        }
+      }
+    }
+    
+    // We couldn't find the creator
+    return undefined;
+  } catch (error) {
+    console.error('Error identifying invitation creator:', error);
+    return undefined;
+  }
+}
 
 /**
  * Create or update an organization invitation from Clerk webhook data
@@ -11,9 +71,10 @@ import { authQuery } from './util/customFunctions'
 export const upsertFromClerk = internalMutation({
   args: {
     data: v.any(), // Invitation data from Clerk
-    eventType: v.string() // Event type like 'organizationInvitation.created', etc.
+    eventType: v.string(), // Event type like 'organizationInvitation.created', etc.
+    eventAttributes: v.optional(v.any()) // Extra information from the webhook event
   },
-  handler: async (ctx, { data, eventType }) => {
+  handler: async (ctx, { data, eventType, eventAttributes }) => {
     // First, find the organization this invitation belongs to
     const organization = await ctx.db
       .query('organizations')
@@ -29,18 +90,45 @@ export const upsertFromClerk = internalMutation({
       return { success: false, reason: 'organization_not_found' }
     }
 
-    // Check if creator user exists (if available in the payload)
+    // Determine the user who created this invitation
     let createdByUserId: Id<'users'> | undefined = undefined
-    if (data.public_user_data?.user_id) {
+    
+    // Method 1: Check if creator user exists in the webhook payload
+    const userId = data.public_user_data?.user_id;
+    if (userId && typeof userId === 'string') {
       const creatorUser = await ctx.db
         .query('users')
         .withIndex('byExternalId', q =>
-          q.eq('externalId', data.public_user_data.user_id)
+          q.eq('externalId', userId)
         )
         .unique()
 
       if (creatorUser) {
         createdByUserId = creatorUser._id
+      }
+    }
+    
+    // Method 2: For organization.created events, get the user from org.created_by
+    if (!createdByUserId && organization.createdBy && typeof organization.createdBy === 'string') {
+      // Store in local variable to help TypeScript with type narrowing
+      const creatingUserId: string = organization.createdBy;
+      
+      const orgCreator = await ctx.db
+        .query('users')
+        .withIndex('byExternalId', q => q.eq('externalId', creatingUserId))
+        .unique()
+        
+      if (orgCreator) {
+        createdByUserId = orgCreator._id
+      }
+    }
+    
+    // Method 3: Look for creator info in the webhook event attributes
+    if (!createdByUserId && eventAttributes && eventType === 'organizationInvitation.created') {
+      // Try to extract the active session/user from HTTP request info
+      const creatingUserId = await getCreatorFromEventAttributes(ctx, eventAttributes, organization._id)
+      if (creatingUserId) {
+        createdByUserId = creatingUserId
       }
     }
 

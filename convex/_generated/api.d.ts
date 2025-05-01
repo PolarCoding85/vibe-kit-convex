@@ -13,6 +13,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as admin_updateUserSystemRole from "../admin/updateUserSystemRole.js";
+import type * as clerkWebhookEvents from "../clerkWebhookEvents.js";
 import type * as http from "../http.js";
 import type * as invitations from "../invitations.js";
 import type * as memberships from "../memberships.js";
@@ -24,7 +26,6 @@ import type * as users from "../users.js";
 import type * as util_auth from "../util/auth.js";
 import type * as util_customFunctions from "../util/customFunctions.js";
 import type * as util_orgAuth from "../util/orgAuth.js";
-import type * as webhookEvents from "../webhookEvents.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -35,6 +36,8 @@ import type * as webhookEvents from "../webhookEvents.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "admin/updateUserSystemRole": typeof admin_updateUserSystemRole;
+  clerkWebhookEvents: typeof clerkWebhookEvents;
   http: typeof http;
   invitations: typeof invitations;
   memberships: typeof memberships;
@@ -46,7 +49,6 @@ declare const fullApi: ApiFromModules<{
   "util/auth": typeof util_auth;
   "util/customFunctions": typeof util_customFunctions;
   "util/orgAuth": typeof util_orgAuth;
-  webhookEvents: typeof webhookEvents;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

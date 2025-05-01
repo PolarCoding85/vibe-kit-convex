@@ -504,7 +504,7 @@ follows the DRY (Don't Repeat Yourself) principle.
     // ... other invitation fields
   })
 
-  webhookEvents: defineTable({
+  clerkWebhookEvents: defineTable({
     eventType: v.string(), // e.g., "user.created", "session.ended"
     eventId: v.string(), // Svix event ID
     objectId: v.string() // ID of the affected object
@@ -587,14 +587,14 @@ follows the DRY (Don't Repeat Yourself) principle.
   })
   ```
 
-- [x] Implement webhook event logging
+- [x] Implement Clerk webhook event logging
 
-  - [x] Create `convex/webhookEvents.ts` module
+  - [x] Create `convex/clerkWebhookEvents.ts` module
   - [x] Add `logEvent` mutation
   - [x] Enable event history tracking in the webhook handler
 
   ```typescript
-  // webhookEvents.ts - Audit logging for all webhook events
+  // clerkWebhookEvents.ts - Audit logging for all webhook events
   export const logEvent = internalMutation({
     args: {
       eventType: v.string(), // e.g. "user.created"

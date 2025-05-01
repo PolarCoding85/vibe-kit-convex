@@ -3,6 +3,7 @@
 import { httpRouter } from 'convex/server'
 import { httpAction } from './_generated/server'
 import { internal } from './_generated/api'
+import { Id } from './_generated/dataModel'
 import type {
   UserJSON,
   OrganizationJSON,
@@ -38,21 +39,30 @@ http.route({
         )
       }
 
+      // Declare eventLogId in outer scope with proper type to make it available in error handling
+      let eventLogId: Id<'clerkWebhookEvents'> | undefined;
+      
       // Process by event type
       try {
-        // Log the webhook event for audit purposes
-        const eventLogId = await ctx.runMutation(
-          internal.webhookEvents.logEvent,
-          {
-            eventType: event.type,
-            eventId: (event as any).svix_id || event.type + '-' + Date.now(), // Use a fallback ID if svix_id is not available
-            objectId: event.data.id || '',
-            objectType: event.type.split('.')[0],
-            timestamp: new Date().toISOString(),
-            data: event.data,
-            status: 'processing'
-          }
-        )
+        // Log the webhook event for audit purposes with initial 'processing' status
+        try {
+          const logResult = await ctx.runMutation(
+            internal.clerkWebhookEvents.logEvent,
+            {
+              eventType: event.type,
+              eventId: (event as any).svix_id || event.type + '-' + Date.now(), // Use a fallback ID if svix_id is not available
+              objectId: event.data.id || '',
+              objectType: event.type.split('.')[0],
+              timestamp: new Date().toISOString(),
+              data: event.data,
+              status: 'processing'
+            }
+          )
+          eventLogId = logResult.eventId
+        } catch (loggingError) {
+          console.error('Failed to log webhook event:', loggingError)
+          // Continue processing even if logging fails
+        }
 
         // Pre-process any session events, including those not explicitly defined in Clerk's types
         if (event.type.startsWith('session.')) {
@@ -74,11 +84,34 @@ http.route({
             )
           }
 
+          // Extract event attributes including client IP and user agent
+          const eventAttributes = (event as any).event_attributes || {}
+
           // Process all session events with the same handler
           await ctx.runMutation(internal.sessions.upsertFromClerk, {
             data: event.data,
-            eventType: event.type
+            eventType: event.type,
+            eventAttributes // Pass through the event attributes which contain client IP and user agent
           })
+
+          // Update event status to processed
+          if (eventLogId) {
+            try {
+              await ctx.runMutation(
+                internal.clerkWebhookEvents.updateEventStatus,
+                {
+                  eventId: eventLogId,
+                  status: 'processed'
+                }
+              )
+            } catch (statusUpdateError) {
+              console.error(
+                'Failed to update webhook event status:',
+                statusUpdateError
+              )
+              // Continue anyway, this is just logging
+            }
+          }
 
           // Send success response for session events
           return new Response(JSON.stringify({ status: 'success' }), {
@@ -111,23 +144,7 @@ http.route({
             break
           }
 
-          // Permission events
-          case 'permission.created':
-          case 'permission.updated':
-          case 'permission.deleted':
-            // Log permission changes but don't store them separately
-            // Permissions are managed by Clerk and don't need to be duplicated
-            console.log(`Received permission event: ${event.type}`, event.data)
-            break
-
-          // Role events
-          case 'role.created':
-          case 'role.updated':
-          case 'role.deleted':
-            // Log role changes but don't store them separately
-            // Roles are managed by Clerk and reflected in memberships
-            console.log(`Received role event: ${event.type}`, event.data)
-            break
+          // Note: Permission and role events are handled later in this switch statement
 
           // Organization events
           case 'organization.created':
@@ -159,9 +176,14 @@ http.route({
             if (!validateInvitationPayload(event.data)) {
               throw new Error('Invalid invitation payload structure')
             }
+
+            // Extract event attributes including creator information from request data
+            const eventAttributes = (event as any).event_attributes || {}
+
             await ctx.runMutation(internal.invitations.upsertFromClerk, {
               data: event.data,
-              eventType: event.type
+              eventType: event.type,
+              eventAttributes // Pass through the event attributes which may contain creator info
             })
             break
 
@@ -236,6 +258,25 @@ http.route({
 
           default:
             console.log('Received unhandled Clerk webhook event:', event.type)
+
+            // Update status for unhandled events as 'ignored'
+            if (eventLogId) {
+              try {
+                await ctx.runMutation(
+                  internal.clerkWebhookEvents.updateEventStatus,
+                  {
+                    eventId: eventLogId,
+                    status: 'ignored'
+                  }
+                )
+              } catch (statusUpdateError) {
+                console.error(
+                  'Failed to update webhook event status:',
+                  statusUpdateError
+                )
+              }
+            }
+
             // Success response for unhandled events to prevent retries
             return new Response(
               JSON.stringify({ status: 'ignored', eventType: event.type }),
@@ -244,6 +285,25 @@ http.route({
                 headers: { 'Content-Type': 'application/json' }
               }
             )
+        }
+
+        // Update event status to processed for all successfully handled events
+        if (eventLogId) {
+          try {
+            await ctx.runMutation(
+              internal.clerkWebhookEvents.updateEventStatus,
+              {
+                eventId: eventLogId,
+                status: 'processed'
+              }
+            )
+          } catch (statusUpdateError) {
+            console.error(
+              'Failed to update webhook event status:',
+              statusUpdateError
+            )
+            // Continue anyway, this is just for logging
+          }
         }
 
         return new Response(JSON.stringify({ status: 'success' }), {
@@ -255,6 +315,26 @@ http.route({
           `Error processing webhook event ${event.type}:`,
           processingError
         )
+
+        // Update event status to failed
+        if (eventLogId) {
+          try {
+            await ctx.runMutation(
+              internal.clerkWebhookEvents.updateEventStatus,
+              {
+                eventId: eventLogId,
+                status: 'failed',
+                errorMessage: String(processingError)
+              }
+            )
+          } catch (statusUpdateError) {
+            console.error(
+              'Failed to update webhook event status:',
+              statusUpdateError
+            )
+          }
+        }
+
         return new Response(
           JSON.stringify({
             error: 'Processing error',
@@ -285,50 +365,37 @@ async function validateRequest(
   req: Request
 ): Promise<{ event: WebhookEvent | null; error: string | null }> {
   try {
-    const payloadString = await req.text()
+    const body = await req.text()
+    const rawBody = body
 
-    // Verify required Svix headers are present
+    // Extract Svix headers
     const svixId = req.headers.get('svix-id')
     const svixTimestamp = req.headers.get('svix-timestamp')
     const svixSignature = req.headers.get('svix-signature')
 
     if (!svixId || !svixTimestamp || !svixSignature) {
-      return {
-        event: null,
-        error: 'Missing required Svix headers'
-      }
+      return { event: null, error: 'Missing svix headers' }
     }
 
-    const svixHeaders = {
+    const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
+    if (!webhookSecret) {
+      return { event: null, error: 'Missing webhook secret' }
+    }
+
+    // Create Webhook instance with secret
+    const wh = new Webhook(webhookSecret)
+
+    // Verify the payload with headers
+    const evt = await wh.verify(rawBody, {
       'svix-id': svixId,
       'svix-timestamp': svixTimestamp,
       'svix-signature': svixSignature
-    }
+    })
 
-    // Verify Clerk webhook secret is configured
-    const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
-    if (!webhookSecret) {
-      console.error('CLERK_WEBHOOK_SECRET is not configured')
-      return {
-        event: null,
-        error: 'Webhook secret not configured'
-      }
-    }
-
-    const wh = new Webhook(webhookSecret)
-
-    // Verify the signature
-    const event = wh.verify(
-      payloadString,
-      svixHeaders
-    ) as unknown as WebhookEvent
-    return { event, error: null }
-  } catch (error) {
-    console.error('Error verifying webhook event', error)
-    return {
-      event: null,
-      error: String(error)
-    }
+    // Verification successful, return the event
+    return { event: evt as WebhookEvent, error: null }
+  } catch (err) {
+    return { event: null, error: String(err) }
   }
 }
 
@@ -337,33 +404,58 @@ async function validateRequest(
  */
 function validateUserPayload(data: any): data is UserJSON {
   return (
-    data &&
-    typeof data === 'object' &&
-    typeof data.id === 'string' &&
-    // First and last name might be null in some cases
-    (data.first_name === null || typeof data.first_name === 'string') &&
-    (data.last_name === null || typeof data.last_name === 'string')
+    data && typeof data === 'object' && typeof data.id === 'string'
+    // Note: We don't check more fields to make this more robust
   )
 }
 
 /**
  * Validates a session payload from Clerk
+ * Made more flexible to handle different session formats
  */
 function validateSessionPayload(data: any): data is SessionJSON {
-  return (
-    data &&
-    typeof data === 'object' &&
-    typeof data.id === 'string' &&
-    typeof data.status === 'string' &&
-    data.user &&
-    typeof data.user === 'object' &&
-    typeof data.user.id === 'string'
-  )
+  // Basic validation - must be an object with ID
+  const hasBasicFields =
+    data && typeof data === 'object' && typeof data.id === 'string'
+
+  if (!hasBasicFields) return false
+
+  // Session status is usually present but might be omitted in some events
+  // So we only check if it's a string when it exists
+  if (data.status !== undefined && typeof data.status !== 'string') {
+    return false
+  }
+
+  // User info might be in different formats:
+  // 1. As a nested user object (data.user.id)
+  // 2. As a flat user_id field (data.user_id)
+  // 3. Missing entirely for some event types (session.removed)
+
+  // Check for nested user object if present
+  if (data.user !== undefined) {
+    // If user is present, it should be an object with an ID
+    if (
+      typeof data.user !== 'object' ||
+      !data.user ||
+      typeof data.user.id !== 'string'
+    ) {
+      // Check if flat user_id exists instead
+      if (typeof data.user_id !== 'string') {
+        return false
+      }
+    }
+  } else if (data.user_id === undefined) {
+    // No user object and no user_id field
+    // We'll accept this since event type validation happens in the handler
+    // The handler already has logic to handle missing user info
+  }
+
+  // If we've passed all checks, the structure is valid enough
+  return true
 }
 
 /**
  * Validates an organization payload from Clerk
- * Handles both normal organization data and deletion events
  */
 function validateOrganizationPayload(data: any): data is OrganizationJSON {
   // For deletion events, we only need the id field

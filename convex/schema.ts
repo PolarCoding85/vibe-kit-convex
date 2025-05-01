@@ -179,8 +179,8 @@ export default defineSchema({
     .index('byExternalId', ['externalId'])
     .index('byKey', ['key']),
 
-  // Webhook events log - useful for debugging and auditing
-  webhookEvents: defineTable({
+  // Clerk Webhook events log - useful for debugging and auditing
+  clerkWebhookEvents: defineTable({
     eventType: v.string(), // e.g., "user.created", "session.ended"
     eventId: v.string(), // Svix event ID
     objectId: v.string(), // ID of the affected object (user ID, session ID, etc.)

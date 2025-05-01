@@ -1,4 +1,4 @@
-// convex/webhookEvents.ts
+// convex/clerkWebhookEvents.ts
 
 import { v } from 'convex/values'
 import { internalMutation } from './_generated/server'
@@ -19,7 +19,7 @@ export const logEvent = internalMutation({
   },
   handler: async (ctx, args) => {
     // Store the event in the database
-    const eventId = await ctx.db.insert('webhookEvents', {
+    const eventId = await ctx.db.insert('clerkWebhookEvents', {
       eventType: args.eventType,
       eventId: args.eventId,
       objectId: args.objectId,
@@ -39,7 +39,7 @@ export const logEvent = internalMutation({
  */
 export const updateEventStatus = internalMutation({
   args: {
-    eventId: v.id('webhookEvents'),
+    eventId: v.id('clerkWebhookEvents'),
     status: v.string(),
     errorMessage: v.optional(v.string())
   },
@@ -80,7 +80,7 @@ export const getRecentEvents = authQuery({
     }
 
     // Get recent events - no sorting for now to avoid TypeScript issues
-    const events = await ctx.db.query('webhookEvents').collect()
+    const events = await ctx.db.query('clerkWebhookEvents').collect()
 
     // Manual sorting by timestamp
     return events
@@ -100,7 +100,7 @@ export const getEventsForObject = authQuery({
   handler: async (ctx, args) => {
     const { objectId, limit = 20 } = args
     // Get events for this object ID
-    const allEvents = await ctx.db.query('webhookEvents').collect()
+    const allEvents = await ctx.db.query('clerkWebhookEvents').collect()
 
     // Manual filtering by objectId
     return allEvents
@@ -136,7 +136,7 @@ export const getEventsByType = authQuery({
     }
 
     // Get events of this type
-    const allEvents = await ctx.db.query('webhookEvents').collect()
+    const allEvents = await ctx.db.query('clerkWebhookEvents').collect()
 
     // Manual filtering by eventType
     return allEvents

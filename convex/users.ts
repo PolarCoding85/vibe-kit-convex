@@ -130,11 +130,35 @@ export const upsertFromClerk = internalMutation({
 
     // Update or create user
     const user = await userByExternalId(ctx, data.id)
+    
     if (user === null) {
       return await ctx.db.insert('users', finalAttributes)
     } else {
-      await ctx.db.patch(user._id, finalAttributes)
-      return user._id
+      // Check if this is a placeholder user that needs to be updated with real data
+      const isPlaceholder = user.publicMetadata?.isPlaceholder === true;
+      
+      if (isPlaceholder) {
+        // For placeholder users, explicitly set publicMetadata without the isPlaceholder flag
+        // We will either use Clerk's publicMetadata or an empty object
+        const updatedPublicMetadata = data.public_metadata || {};
+        
+        // If there are other flags in the existing publicMetadata that we want to keep,
+        // we could merge them here, excluding the isPlaceholder flag
+        
+        // Ensure we update publicMetadata in the final attributes
+        const updatedAttributes = {
+          ...finalAttributes,
+          publicMetadata: updatedPublicMetadata
+        };
+        
+        await ctx.db.patch(user._id, updatedAttributes);
+        console.log(`Updated placeholder user ${user._id} with real data from Clerk`);
+      } else {
+        // Normal update for non-placeholder users
+        await ctx.db.patch(user._id, finalAttributes);
+      }
+      
+      return user._id;
     }
   }
 })
