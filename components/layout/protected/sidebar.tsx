@@ -6,7 +6,8 @@ import {
   DatabaseIcon,
   HeartHandshakeIcon,
   HelpCircleIcon,
-  SettingsIcon
+  SettingsIcon,
+  ShieldCheckIcon
 } from 'lucide-react'
 
 import { NavSecondary } from '@/components/layout/shared/nav-secondary'
@@ -22,17 +23,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
+import { ProtectedNavTools } from './nav/nav-tools'
+import { ProtectedNavTables } from './nav/nav-tables'
 
 export function ProtectedSidebar({
   ...props
-}: React.ComponentProps<
-  typeof Sidebar
->) {
+}: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar
-      collapsible='icon'
-      {...props}
-    >
+    <Sidebar collapsible='icon' {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -41,9 +39,9 @@ export function ProtectedSidebar({
               className='data-[slot=sidebar-menu-button]:!p-1.5'
             >
               <a href='/dashboard'>
-                <HeartHandshakeIcon className='text-primary h-5 w-5' />
+                <ShieldCheckIcon className='text-primary h-5 w-5' />
                 <span className='text-base font-semibold'>
-                  Vibe Kits
+                  call<span className='text-primary'>adhere</span>
                 </span>
               </a>
             </SidebarMenuButton>
@@ -52,21 +50,8 @@ export function ProtectedSidebar({
       </SidebarHeader>
       <SidebarContent>
         <ProtectedNavMain />
-        <NavSecondary
-          label='Documents'
-          items={[
-            {
-              name: 'Data Library',
-              url: '/documents/data',
-              icon: DatabaseIcon
-            },
-            {
-              name: 'Reports',
-              url: '/documents/reports',
-              icon: ClipboardListIcon
-            }
-          ]}
-        />
+        <ProtectedNavTools />
+        <ProtectedNavTables />
         <NavFooter
           className='mt-auto'
           items={[
