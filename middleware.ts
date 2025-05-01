@@ -7,8 +7,16 @@ const isAdminRoute = createRouteMatcher(['/admin(.*)'])
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
 const isApiRoute = createRouteMatcher(['/api/(.*)'])
 
-// Check if a role starts with 'org:super_'
-const isSuperRole = (role: string) => role.startsWith('org:super_')
+// Helper to check if a user has system admin access via claims
+const hasSystemAdminAccess = (sessionClaims: any) => {
+  if (!sessionClaims) return false
+  
+  // Check for our custom claims that would be set via a JWT template in Clerk
+  return (
+    sessionClaims.isSuperAdmin === true || 
+    sessionClaims.isSuperUser === true
+  )
+}
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, orgId, orgRole, has, sessionClaims } = await auth()
@@ -28,28 +36,16 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(signIn)
     }
     
-    // If no organization, redirect to org selection
-    if (!orgId) {
-      const orgSelection = new URL('/my-organizations', req.url)
-      return NextResponse.redirect(orgSelection)
-    }
-
-    // Check if user has any super_* role
-    const hasSuperRole = orgRole ? isSuperRole(orgRole) : false
-    const isSuperAdmin = has({ role: 'org:super_admin' })
+    // Check if user has system admin access via custom claims
+    const hasAdminAccess = hasSystemAdminAccess(sessionClaims)
     
-    if (!hasSuperRole && !isSuperAdmin) {
+    if (!hasAdminAccess) {
       // User doesn't have required permissions
       return NextResponse.redirect(new URL('/unauthorized', req.url))
     }
 
-    // If has org and is admin/super role, protect the route
-    if (isSuperAdmin) {
-      await auth.protect({ role: 'org:super_admin' })
-    } else {
-      // Any super_* role can access admin routes
-      await auth.protect()
-    }
+    // Protect the route with basic authentication
+    await auth.protect()
     
     // Continue to the admin route
     return NextResponse.next()
