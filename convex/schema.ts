@@ -29,8 +29,6 @@ export default defineSchema({
     emailVerified: v.optional(v.boolean()), // Whether the primary email is verified
     hasPassword: v.optional(v.boolean()), // Whether the user has set a password
     twoFactorEnabled: v.optional(v.boolean()), // Whether 2FA is enabled
-    isSuperAdmin: v.optional(v.boolean()), // Whether the user is a super admin
-    isSuperUser: v.optional(v.boolean()), // Whether the user is a super user
 
     // Metadata from Clerk
     publicMetadata: v.optional(v.any()), // Public metadata (visible to frontend)

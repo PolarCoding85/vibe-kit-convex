@@ -62,9 +62,7 @@ export const upsertFromClerk = internalMutation({
 
     // Extract system role flags from Clerk's private metadata (if present)
     const privateMetadata = data.private_metadata || {}
-    const isSuperAdmin = privateMetadata.isSuperAdmin === true
-    const isSuperUser = privateMetadata.isSuperUser === true
-    
+
     // Create enhanced user attributes object
     const userAttributes = {
       // Basic information
@@ -95,10 +93,6 @@ export const upsertFromClerk = internalMutation({
       emailVerified,
       hasPassword: data.password_enabled === true ? true : undefined,
       twoFactorEnabled: data.two_factor_enabled === true ? true : undefined,
-      
-      // System role flags
-      isSuperAdmin: isSuperAdmin || undefined,
-      isSuperUser: isSuperUser || undefined,
 
       // Metadata
       publicMetadata:
@@ -130,35 +124,37 @@ export const upsertFromClerk = internalMutation({
 
     // Update or create user
     const user = await userByExternalId(ctx, data.id)
-    
+
     if (user === null) {
       return await ctx.db.insert('users', finalAttributes)
     } else {
       // Check if this is a placeholder user that needs to be updated with real data
-      const isPlaceholder = user.publicMetadata?.isPlaceholder === true;
-      
+      const isPlaceholder = user.publicMetadata?.isPlaceholder === true
+
       if (isPlaceholder) {
         // For placeholder users, explicitly set publicMetadata without the isPlaceholder flag
         // We will either use Clerk's publicMetadata or an empty object
-        const updatedPublicMetadata = data.public_metadata || {};
-        
+        const updatedPublicMetadata = data.public_metadata || {}
+
         // If there are other flags in the existing publicMetadata that we want to keep,
         // we could merge them here, excluding the isPlaceholder flag
-        
+
         // Ensure we update publicMetadata in the final attributes
         const updatedAttributes = {
           ...finalAttributes,
           publicMetadata: updatedPublicMetadata
-        };
-        
-        await ctx.db.patch(user._id, updatedAttributes);
-        console.log(`Updated placeholder user ${user._id} with real data from Clerk`);
+        }
+
+        await ctx.db.patch(user._id, updatedAttributes)
+        console.log(
+          `Updated placeholder user ${user._id} with real data from Clerk`
+        )
       } else {
         // Normal update for non-placeholder users
-        await ctx.db.patch(user._id, finalAttributes);
+        await ctx.db.patch(user._id, finalAttributes)
       }
-      
-      return user._id;
+
+      return user._id
     }
   }
 })

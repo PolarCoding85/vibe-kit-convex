@@ -13,7 +13,6 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as admin_updateUserSystemRole from "../admin/updateUserSystemRole.js";
 import type * as clerkWebhookEvents from "../clerkWebhookEvents.js";
 import type * as http from "../http.js";
 import type * as invitations from "../invitations.js";
@@ -36,7 +35,6 @@ import type * as util_orgAuth from "../util/orgAuth.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  "admin/updateUserSystemRole": typeof admin_updateUserSystemRole;
   clerkWebhookEvents: typeof clerkWebhookEvents;
   http: typeof http;
   invitations: typeof invitations;
