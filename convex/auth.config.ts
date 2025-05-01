@@ -3,8 +3,8 @@
 export default {
   providers: [
     {
-      domain: "https://civil-wasp-37.clerk.accounts.dev",
-      applicationID: "convex",
-    },
-  ],
-};
+      domain: 'https://dashing-bison-99.clerk.accounts.dev',
+      applicationID: 'convex'
+    }
+  ]
+}

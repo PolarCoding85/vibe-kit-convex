@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { Protect } from '@clerk/nextjs'
 import { Eye, MoreHorizontal, Trash, UserMinus } from 'lucide-react'
 
-import { organizationRoles } from '@/lib/constants/organizations'
+import { organizationRoles } from '@/lib/constants/organizations-roles'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {

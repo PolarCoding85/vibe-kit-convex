@@ -200,6 +200,7 @@ follows the DRY (Don't Repeat Yourself) principle.
   ```
 
 - [x] Create utility function for checking admin permissions
+
   ```typescript
   export async function requireOrgAdmin(
     ctx: QueryCtx | MutationCtx,
@@ -262,13 +263,13 @@ follows the DRY (Don't Repeat Yourself) principle.
     return usePaginatedQuery(query, isAuthenticated ? args : 'skip', options)
   }
   ```
-  
+
 - [x] Added additional helper hook `useAuthStatus` for auth state management
 
   ```typescript
   // hooks/use-auth-status.ts
   export function useAuthStatus() {
-    const { isLoading, isAuthenticated } = useConvexAuth();
+    const { isLoading, isAuthenticated } = useConvexAuth()
 
     return {
       isLoading,
@@ -276,7 +277,7 @@ follows the DRY (Don't Repeat Yourself) principle.
       isUnauthenticated: !isLoading && !isAuthenticated,
       isAuthenticating: isLoading,
       isReady: !isLoading
-    };
+    }
   }
   ```
 
@@ -284,32 +285,60 @@ follows the DRY (Don't Repeat Yourself) principle.
 
 ### Set Up Auth Middleware
 
-- [ ] Configure Next.js middleware for route protection
+- [x] Configure Next.js middleware for route protection
 
   ```typescript
   // middleware.ts
   import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+  import { NextResponse } from 'next/server'
 
-  const isProtectedRoute = createRouteMatcher([
-    '/dashboard(.*)',
-    '/organizations(.*)',
-    '/settings(.*)'
-    // Add more protected routes here
-  ])
+  const isAdminRoute = createRouteMatcher(['/admin(.*)'])
+  const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
+  const isApiRoute = createRouteMatcher(['/api/(.*)'])
+
+  // Check if a role starts with 'org:super_'
+  const isSuperRole = (role: string) => role.startsWith('org:super_')
 
   export default clerkMiddleware(async (auth, req) => {
-    const { userId, redirectToSignIn } = await auth()
+    const { userId, orgId, orgRole, has } = await auth()
 
-    if (!userId && isProtectedRoute(req)) {
-      return redirectToSignIn()
+    // API routes need authentication but no redirects
+    if (isApiRoute(req)) {
+      await auth.protect()
+      return NextResponse.next()
     }
+
+    // Check for admin routes first (only super_* roles can access)
+    if (isAdminRoute(req)) {
+      // If not authenticated, redirect to sign-in
+      if (!userId) {
+        return NextResponse.redirect(new URL('/sign-in', req.url))
+      }
+
+      // Check if user has any super_* role
+      const hasSuperRole = orgRole ? isSuperRole(orgRole) : false
+      const isSuperAdmin = has({ role: 'org:super_admin' })
+
+      if (!hasSuperRole && !isSuperAdmin) {
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+    }
+
+    // For protected routes, check auth & org context
+    if (isProtectedRoute(req)) {
+      await auth.protect()
+
+      if (!orgId) {
+        return NextResponse.redirect(new URL('/my-organizations', req.url))
+      }
+    }
+
+    return NextResponse.next()
   })
 
   export const config = {
     matcher: [
-      // Skip Next.js internals and static files
       '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-      // Always run for API routes
       '/(api|trpc)(.*)'
     ]
   }
@@ -317,28 +346,72 @@ follows the DRY (Don't Repeat Yourself) principle.
 
 ### Set Up Authentication Provider
 
-- [ ] Configure Convex Provider with Clerk in your app
+- [x] Configure Convex Provider with Clerk in your app
 
   ```tsx
-  // app/providers.tsx
+  // providers/convex-client-provider.tsx
   'use client'
 
   import { ReactNode } from 'react'
+  import { useAuth } from '@clerk/nextjs'
   import { ConvexReactClient } from 'convex/react'
   import { ConvexProviderWithClerk } from 'convex/react-clerk'
-  import { ClerkProvider, useAuth } from '@clerk/nextjs'
 
-  const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
+  // Create the Convex client with optimized configuration
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL
 
-  export default function Providers({ children }: { children: ReactNode }) {
+  if (!convexUrl) {
+    throw new Error(
+      'NEXT_PUBLIC_CONVEX_URL is not defined. Please check your environment variables.'
+    )
+  }
+
+  const convex = new ConvexReactClient(convexUrl, {
+    // Enable warning when there are unsaved changes
+    unsavedChangesWarning: true
+  })
+
+  /**
+   * Provides Convex client with Clerk authentication integration.
+   * This component ensures all Convex queries have access to the
+   * current auth state and automatically refreshes tokens as needed.
+   */
+  export function ConvexClientProvider({ children }: { children: ReactNode }) {
     return (
-      <ClerkProvider
-        publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      >
-        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        {children}
+      </ConvexProviderWithClerk>
+    )
+  }
+  ```
+
+  And used in the providers component:
+
+  ```tsx
+  // providers/providers.tsx
+  'use client'
+
+  import { Toaster } from '@/components/ui/sonner'
+  import { ThemeProvider, useTheme } from 'next-themes'
+  import { ConvexClientProvider } from './convex-client-provider'
+
+  export default function Providers({
+    children
+  }: {
+    children: React.ReactNode
+  }) {
+    return (
+      <ConvexClientProvider>
+        <ThemeProvider
+          enableSystem
+          attribute='class'
+          defaultTheme='dark'
+          disableTransitionOnChange
+        >
           {children}
-        </ConvexProviderWithClerk>
-      </ClerkProvider>
+          <ToasterProvider />
+        </ThemeProvider>
+      </ConvexClientProvider>
     )
   }
   ```
@@ -347,33 +420,199 @@ follows the DRY (Don't Repeat Yourself) principle.
 
 ### Use Internal Functions for Sensitive Operations
 
-- [ ] Review current function visibility and convert appropriate functions to
+- [x] Review current function visibility and convert appropriate functions to
       internal
+
   ```typescript
   // For sensitive operations that should never be called from the client
-  import { internalQuery, internalMutation } from './_generated/server'
+  import { internalMutation } from './_generated/server'
+
+  // Example: Properly using internal mutations for webhook handlers
+  export const upsertFromClerk = internalMutation({
+    args: { data: v.any() },
+    handler: async (ctx, { data }) => {
+      // Implementation
+    }
+  })
   ```
 
 ### Add Enhanced Error Handling
 
-- [ ] Implement structured error handling with appropriate HTTP status codes
+- [x] Implement structured error handling with appropriate HTTP status codes
+
   ```typescript
-  // Example improved error handling
+  // Example of improved error handling in http.ts
   try {
-    // Operation that might fail
-  } catch (error) {
-    if (error instanceof ConvexError) {
-      // Handle known errors
-      console.error(`Authentication error: ${error.message}`)
-    } else {
-      // Handle unexpected errors
-      console.error('Unexpected error:', error)
-      throw new ConvexError('An unexpected error occurred')
-    }
+    // Process webhook event
+  } catch (processingError) {
+    console.error(
+      `Error processing webhook event ${event.type}:`,
+      processingError
+    )
+    return new Response(
+      JSON.stringify({
+        error: 'Processing error',
+        details: String(processingError),
+        eventType: event.type
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   }
   ```
 
-## 8. Testing
+### Add Payload Validation
+
+- [x] Implement type guards and validation for webhook payloads
+
+  ```typescript
+  // Example of payload validation for Clerk webhook data
+  function validateUserPayload(data: any): data is UserJSON {
+    return (
+      data &&
+      typeof data === 'object' &&
+      typeof data.id === 'string' &&
+      typeof data.first_name === 'string' &&
+      typeof data.last_name === 'string'
+    )
+  }
+  ```
+
+## 8. Extended Webhook Event Handling
+
+### Schema Enhancements
+
+- [x] Update schema to support additional Clerk webhook events
+
+  ```typescript
+  // New tables added to schema.ts
+  sessions: defineTable({
+    externalId: v.string(), // Clerk session ID
+    userId: v.id('users'),
+    status: v.string(), // "active", "ended", "revoked", etc.
+    createdAt: v.string()
+    // ... other session fields
+  })
+
+  organizationInvitations: defineTable({
+    externalId: v.string(), // Clerk invitation ID
+    organizationId: v.id('organizations'),
+    email: v.string(),
+    status: v.string() // "pending", "accepted", "revoked", etc.
+    // ... other invitation fields
+  })
+
+  webhookEvents: defineTable({
+    eventType: v.string(), // e.g., "user.created", "session.ended"
+    eventId: v.string(), // Svix event ID
+    objectId: v.string() // ID of the affected object
+    // ... other audit fields
+  })
+  ```
+
+### Additional Webhook Handlers
+
+- [x] Add validation for new webhook event types
+
+  ```typescript
+  // Example of session payload validation
+  function validateSessionPayload(data: any): data is SessionJSON {
+    return (
+      data &&
+      typeof data === 'object' &&
+      typeof data.id === 'string' &&
+      typeof data.status === 'string' &&
+      data.user &&
+      typeof data.user === 'object' &&
+      typeof data.user.id === 'string'
+    )
+  }
+  ```
+
+- [x] Implement session event handling
+
+  - [x] Create `convex/sessions.ts` module
+  - [x] Add `upsertFromClerk` and `endFromClerk` mutations
+  - [x] Integrate with webhook handler
+
+  ```typescript
+  // sessions.ts - Handling webhook events
+  export const upsertFromClerk = internalMutation({
+    args: {
+      data: v.any(), // Session data from Clerk
+      eventType: v.string() // Event type like 'session.created', 'session.ended', etc.
+    },
+    handler: async (ctx, { data, eventType }) => {
+      // Implementation for creating/updating sessions from webhook data
+      const sessionData = {
+        externalId: data.id,
+        userId: user._id,
+        status: sessionStatus
+        // Other session details
+      }
+
+      // Update or create session record
+      // Return success status
+    }
+  })
+  ```
+
+- [x] Implement invitation event handling
+
+  - [x] Create `convex/invitations.ts` module
+  - [x] Add `upsertFromClerk` and `deleteFromClerk` mutations
+  - [x] Integrate with webhook handler
+
+  ```typescript
+  // invitations.ts - Handling invitation webhook events
+  export const upsertFromClerk = internalMutation({
+    args: {
+      data: v.any(), // Invitation data from Clerk
+      eventType: v.string() // Event type like 'organizationInvitation.created', etc.
+    },
+    handler: async (ctx, { data, eventType }) => {
+      // Determine invitation status based on event type
+      let invitationStatus = 'pending'
+      if (eventType === 'organizationInvitation.accepted') {
+        invitationStatus = 'accepted'
+      } else if (eventType === 'organizationInvitation.revoked') {
+        invitationStatus = 'revoked'
+      }
+
+      // Create or update invitation record
+      // Return success status
+    }
+  })
+  ```
+
+- [x] Implement webhook event logging
+
+  - [x] Create `convex/webhookEvents.ts` module
+  - [x] Add `logEvent` mutation
+  - [x] Enable event history tracking in the webhook handler
+
+  ```typescript
+  // webhookEvents.ts - Audit logging for all webhook events
+  export const logEvent = internalMutation({
+    args: {
+      eventType: v.string(), // e.g. "user.created"
+      eventId: v.string(), // Svix event ID
+      objectId: v.string(), // ID of the object (user, session, etc.)
+      objectType: v.string(), // Type of object (user, session, etc.)
+      timestamp: v.string(), // When the event occurred
+      data: v.any(), // Full event payload
+      status: v.string() // "processing", "processed", "failed"
+    },
+    handler: async (ctx, args) => {
+      // Store the event in the database
+      // Return success status
+    }
+  })
+  ```
+
+## 9. Testing
 
 ### Verify Authentication Flow
 
@@ -383,7 +622,7 @@ follows the DRY (Don't Repeat Yourself) principle.
 - [ ] Test client-side authentication hooks with both authenticated and
       unauthenticated states
 
-## 9. Documentation
+## 10. Documentation
 
 ### Update API Documentation
 

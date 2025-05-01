@@ -8,7 +8,7 @@ import { Protect, useAuth, useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
 
 import { Loader2, ArrowLeft, Save } from 'lucide-react'
-import { organizationRoles } from '@/lib/constants/organizations'
+import { organizationRoles } from '@/lib/constants/organizations-roles'
 import { AdminPageHeader } from '@/components/layout/admin/admin-page-header'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,7 +38,9 @@ export default function TeamMemberSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [memberRole, setMemberRole] = useState('')
-  const [memberStatus, setMemberStatus] = useState<'active' | 'inactive'>('' as 'active' | 'inactive')
+  const [memberStatus, setMemberStatus] = useState<'active' | 'inactive'>(
+    '' as 'active' | 'inactive'
+  )
   const [memberData, setMemberData] = useState<{
     id: string
     firstName?: string
@@ -75,9 +77,10 @@ export default function TeamMemberSettingsPage() {
           // For demo purposes, simulate fetching the user's actual role
           // We'll randomly assign one for demonstration
           const userRoles = organizationRoles.map(r => r.value)
-          const randomRole = userRoles[Math.floor(Math.random() * userRoles.length)]
+          const randomRole =
+            userRoles[Math.floor(Math.random() * userRoles.length)]
           setMemberRole(randomRole)
-          
+
           // Set status (most users are active)
           setMemberStatus(Math.random() < 0.9 ? 'active' : 'inactive')
         } else {
@@ -94,9 +97,10 @@ export default function TeamMemberSettingsPage() {
           // Let's pick a different role than the current user
           const userRoles = organizationRoles.map(r => r.value)
           // Pick a random role that's likely different from current user's role
-          const randomRole = userRoles[Math.floor(Math.random() * userRoles.length)]
+          const randomRole =
+            userRoles[Math.floor(Math.random() * userRoles.length)]
           setMemberRole(randomRole)
-          
+
           // Set status (most users are active, but some might be inactive)
           setMemberStatus(Math.random() < 0.8 ? 'active' : 'inactive')
         }

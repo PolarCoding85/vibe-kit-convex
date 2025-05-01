@@ -32,7 +32,7 @@ import {
   updateOrganizationMembershipRole,
   deleteOrganizationMembership
 } from '@/app/api/organization/actions'
-import { organizationRoles } from '@/lib/constants/organizations'
+import { organizationRoles } from '@/lib/constants/organizations-roles'
 
 interface OrganizationMembership {
   id: string
